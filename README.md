@@ -103,10 +103,10 @@ curl -X POST http://localhost:8080/merch/buy \
 ## **🤝 Состав команды**
 | Участник | Github | Роль| 
 | ----- | ----------------- | -------------------------------- |
-| Морочковский Владислав  | [Whatisloooooove](https://github.com/Whatisloooooove) | Team Lead and QA Engineer |
-| Шалбай Алишер  | [reshile](https://github.com/reshile)     | API Developer |
-| Накорнеева Юлия   | [nakorneeva](https://github.com/Yulia-Nakorneeva) | Database Engineer |
-| Афиф Азиз  | [AzizAF1](https://github.com/AzizAF1) | Backend Core Developer | 
+| Морочковский Владислав 🛌 | [Whatisloooooove](https://github.com/Whatisloooooove) | Team Lead and QA Engineer |
+| Шалбай Алишер 🥷 | [reshile](https://github.com/reshile)     | API Developer |
+| Накорнеева Юлия 🌞 | [nakorneeva](https://github.com/Yulia-Nakorneeva) | Database Engineer |
+| Афиф Азиз 🧑‍💻 | [AzizAF1](https://github.com/AzizAF1) | Backend Core Developer | 
 
 ⚠️ TO-DO
 ---
