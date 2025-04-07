@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -42,7 +43,11 @@ var merch = []struct {
 }
 
 func MerchList(c *gin.Context) {
-	c.JSON(http.StatusOK, merch)
+	c.JSON(http.StatusOK, gin.H{
+		"error_code": http.StatusOK,
+		"message":    MerchListOK,
+		"data":       merch,
+	})
 }
 
 func WalletHistory(c *gin.Context) {
@@ -70,6 +75,8 @@ type LoginRequest struct {
 // Если пользователь существует возвращает код ошибки http.StatusBadRequest
 func RegHandler(config *ServerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		log.Println("In registration handler!") // Remove after DEBUG !
+
 		// Здесь должно быть обращение к базе данных для проверки
 		// существования записи пользователя
 
@@ -90,7 +97,13 @@ func RegHandler(config *ServerConfig) gin.HandlerFunc {
 			return
 		}
 
-		SendToken(c, config, &json)
+		// Не нужен. Токены выдаются при /auth/login
+		// SendToken(c, config, &json)
+		c.JSON(http.StatusOK, gin.H{
+			"error_code": http.StatusOK,
+			"message":    RegistrationOK,
+			"data":       struct{}{},
+		})
 	}
 }
 
@@ -100,6 +113,7 @@ func RegHandler(config *ServerConfig) gin.HandlerFunc {
 // Если пользователя не существует возврощает код ошибки http.StatusBadRequest
 func LoginHandler(config *ServerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		log.Println("In login handler!") // Remove after DEBUG !
 		var json LoginRequest
 		if err := c.ShouldBindJSON(&json); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -107,9 +121,7 @@ func LoginHandler(config *ServerConfig) gin.HandlerFunc {
 		}
 
 		if pass, userExists := users[json.Login]; userExists {
-			if pass == json.Pass {
-				c.JSON(http.StatusOK, gin.H{"hi": json.Login})
-			} else {
+			if pass != json.Pass {
 				// TODO: Наверно не очень хорошо говорить что пароль неправильный? (Могут брутфорсить, нужнен ratelimiter?)
 				c.JSON(http.StatusBadRequest, gin.H{"error": WrongPassError})
 				return

@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -18,7 +17,7 @@ import (
 // к API, срабатывающая до перехода к обработке запроса
 func AuthRequired(config *ServerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		fmt.Println("HELLO! FROM AUTH") // REMOVE AFTER DEBUG
+		log.Println("HELLO! FROM AUTH MIDDLEWARE") // REMOVE AFTER DEBUG
 
 		// Зачем нужен Bearer в ключе??? (Мы поддерживаем только JWT, или нет?)
 		tokenString := c.GetHeader("Authorization")
@@ -100,7 +99,11 @@ func SendToken(c *gin.Context, config *ServerConfig, json *LoginRequest) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"token":   tokenString,
-		"refresh": refreshTokenString,
+		"error_code": http.StatusOK,
+		"message":    TokensOK,
+		"data": gin.H{
+			"refresh": refreshTokenString,
+			"token":   tokenString,
+		},
 	})
 }
