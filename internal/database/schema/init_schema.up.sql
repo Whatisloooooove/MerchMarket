@@ -46,8 +46,8 @@ CREATE TABLE IF NOT EXISTS merchshop.purchases (
 CREATE TABLE IF NOT EXISTS merchshop.coinhistory (
     change_id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
-    coins_before INTEGER NOT NULL CHECK (coins_before > 0),
-    coins_after INTEGER NOT NULL CHECK (coins_after > 0),
+    coins_before INTEGER NOT NULL CHECK (coins_before >= 0),
+    coins_after INTEGER NOT NULL CHECK (coins_after >= 0),
     change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (user_id) REFERENCES users(user_id)
