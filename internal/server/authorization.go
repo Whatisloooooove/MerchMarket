@@ -35,6 +35,7 @@ func AuthRequired(config *ServerConfig) gin.HandlerFunc {
 		if err != nil || !token.Valid {
 			log.Println(err)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": AuthError})
+			// TODO обновление ключа !!!
 			c.Abort()
 			return
 		}
@@ -57,10 +58,14 @@ func AuthRequired(config *ServerConfig) gin.HandlerFunc {
 // SendToken возвращает JWT токены для авторизации (с таймаутом) и для обновления первого
 // В случае успешной генерации пользователь получит JSON формата:
 //
-//	{
-//	  "token": xxx.yyy.zzz,
-//	  "refresh": aaa.bbb.ccc,
-//	}
+//		{
+//	   "error_code": ...,
+//	   "message": ...,
+//		  "data": {
+//		  	"token": xxx.yyy.zzz,
+//		  	"refresh": aaa.bbb.ccc,
+//			}
+//		}
 func SendToken(c *gin.Context, config *ServerConfig, json *LoginRequest) {
 	// TODO стоит ли передавать в CreateToken объект LoginRequest
 	// полученный в RegHandler?
