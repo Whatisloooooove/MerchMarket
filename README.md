@@ -69,11 +69,36 @@
 
 Пример запроса:  
 ```bash
-curl -X POST http://localhost:8080/merch/buy \
-  -H "Authorization: Bearer <JWT_TOKEN>" \
-  -d '{"item": "t-shirt"}'
+curl -X POST http://localhost:8080/auth/register \
+  -H  "Content-Type: application/json" \
+  -d '{"login":"user", "pass":"secret"}'
+```
+или вот так
+```bash
+curl -X GET http://localhost:8080/merch \
+  -H "Authorization: <JWT_Token>"
 ```
 
+Ответом на запрос вернётся json состоящий из:
+error_code - код ошибки
+message - сообщение об ошибке (успехе)
+data - данные в формате задаваемом API
+
+Например:
+```json
+{
+	error_code: 200,
+	message: "", # пустой либо "Merch list loaded successfully"
+	data: [
+		{
+ 		name: "shoes",
+ 		price: 100,
+ 		stock: 20
+ 		},
+ 		...
+	]
+}
+```
 ---
 
 ## **🧪 Тестирование**  
