@@ -2,6 +2,7 @@ package server
 
 import (
 	"log"
+	"merch_service/internal/database"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -47,7 +48,7 @@ func loadConfig(configPath string) *ServerConfig {
 
 func NewServer() Server {
 	router := gin.Default()
-	config := loadConfig("configs/config.yml")
+	config := loadConfig("configs/server_config.yml")
 
 	// TODO загрузить секретный ключ
 	newServ := Server{
@@ -67,8 +68,8 @@ func (serv Server) SetupRoutes() {
 	// })
 
 	// --- Публичные пути START --- //
-	serv.router.POST("/auth/register", RegHandler(serv.config)) // TODO handler
-	serv.router.POST("/auth/login", LoginHandler(serv.config))  // TODO handler
+	serv.router.POST("/auth/register", RegHandler(serv.config)) // DONE
+	serv.router.POST("/auth/login", LoginHandler(serv.config))  // DONE
 	// --- Публичные пути END --- //
 
 	// --- Приватные пути START --- //
@@ -76,15 +77,17 @@ func (serv Server) SetupRoutes() {
 	authorized := serv.router.Group("/")
 	authorized.Use(AuthRequired(serv.config))
 	{
-		authorized.GET("/merch", MerchList)
-		authorized.GET("/history", WalletHistory)
-		authorized.POST("/merch/buy")      // TODO handler
-		authorized.POST("/coins/transfer") // TODO handler
+		authorized.GET("/merch", MerchList)       // DONE
+		authorized.GET("/history", WalletHistory) // NOT YET
+		authorized.POST("/merch/buy")             // NOT YET
+		authorized.POST("/coins/transfer")        // NOT YET
 	}
+
 	// --- Приватные пути END --- //
 }
 
 func (serv Server) Run() {
+	database.InitDB()
 	serv.SetupRoutes()
 	serv.router.Run(serv.config.Host + ":" + strconv.Itoa(serv.config.Port))
 }

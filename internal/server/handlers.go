@@ -2,51 +2,29 @@ package server
 
 import (
 	"log"
+	"merch_service/internal/database"
+	"merch_service/internal/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-var merch = []struct {
-	Name    string
-	MerchId int
-	Price   int
-	Stock   int
-}{
-	{
-		MerchId: 1,
-		Name:    "merch1",
-		Price:   100,
-		Stock:   20,
-	},
-	{
-		MerchId: 2,
-		Name:    "merch2",
-		Price:   100,
-		Stock:   20,
-	}, {
-		MerchId: 3,
-		Name:    "merch3",
-		Price:   100,
-		Stock:   20,
-	}, {
-		MerchId: 4,
-		Name:    "merch4",
-		Price:   100,
-		Stock:   20,
-	}, {
-		MerchId: 5,
-		Name:    "merch5",
-		Price:   100,
-		Stock:   20,
-	},
-}
-
 func MerchList(c *gin.Context) {
+	merchlist, err := database.Connect().GetMerchList()
+
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"error_code": http.StatusInternalServerError,
+			"message":    InternalServerError,
+			"data":       struct{}{},
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"error_code": http.StatusOK,
 		"message":    MerchListOK,
-		"data":       merch,
+		"data":       merchlist,
 	})
 }
 
@@ -56,9 +34,6 @@ func WalletHistory(c *gin.Context) {
 		"before": 321,
 	})
 }
-
-// Временно!
-var users map[string]string = make(map[string]string)
 
 // LoginRequest структура запроса на регистрацию
 // и на вход в систему
@@ -77,9 +52,6 @@ func RegHandler(config *ServerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		log.Println("In registration handler!") // Remove after DEBUG !
 
-		// Здесь должно быть обращение к базе данных для проверки
-		// существования записи пользователя
-
 		var json LoginRequest
 		// см [validation](https://github.com/gin-gonic/gin/blob/master/docs/doc.md#model-binding-and-validation)
 		if err := c.ShouldBindJSON(&json); err != nil {
@@ -87,18 +59,46 @@ func RegHandler(config *ServerConfig) gin.HandlerFunc {
 			return
 		}
 
-		userLogin := json.Login
-		userPass := json.Pass
+		// Проверка существования записи в БД
+		registered, err := database.Connect().CheckUser(&models.User{
+			Login:    json.Login,
+			Password: json.Pass,
+			// Поле email добавим позже
+		})
 
-		if _, userExists := users[userLogin]; !userExists {
-			users[userLogin] = userPass
-		} else {
-			c.JSON(http.StatusBadRequest, gin.H{"error": UserExistsError})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error_code": http.StatusInternalServerError,
+				"message":    InternalServerError,
+				"data":       struct{}{},
+			})
 			return
 		}
 
-		// Не нужен. Токены выдаются при /auth/login
-		// SendToken(c, config, &json)
+		if !registered {
+			err := database.Connect().RegisterUser(&models.User{
+				Login:    json.Login,
+				Password: json.Pass,
+			})
+
+			// По идее insert в бд должен быть успешен, если только он не отвалился
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error_code": http.StatusInternalServerError,
+					"message":    InternalServerError,
+					"data":       struct{}{},
+				})
+				return
+			}
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error_code": http.StatusBadRequest,
+				"message":    UserExistsError,
+				"data":       struct{}{},
+			})
+			return
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"error_code": http.StatusOK,
 			"message":    RegistrationOK,
@@ -120,18 +120,31 @@ func LoginHandler(config *ServerConfig) gin.HandlerFunc {
 			return
 		}
 
-		if pass, userExists := users[json.Login]; userExists {
-			if pass != json.Pass {
-				// TODO: Наверно не очень хорошо говорить что пароль неправильный? (Могут брутфорсить, нужнен ratelimiter?)
-				c.JSON(http.StatusBadRequest, gin.H{"error": WrongPassError})
-				return
-			}
-		} else {
-			c.JSON(http.StatusBadRequest, gin.H{"error": UserNotFoundError})
+		// Проверка существования записи в БД
+		registered, err := database.Connect().CheckUser(&models.User{
+			Login:    json.Login,
+			Password: json.Pass,
+			// Поле email добавим позже
+		})
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error_code": http.StatusInternalServerError,
+				"message":    InternalServerError,
+				"data":       struct{}{},
+			})
 			return
 		}
 
-		// TODO вернуть токен
+		if !registered {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error_code": http.StatusBadRequest,
+				"message:":   UserNotFoundError,
+				"data":       struct{}{},
+			})
+			return
+		}
+
 		SendToken(c, config, &json)
 	}
 }
