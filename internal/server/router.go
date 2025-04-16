@@ -88,3 +88,7 @@ func (serv Server) Run() {
 	serv.SetupRoutes()
 	serv.router.Run(serv.config.Host + ":" + strconv.Itoa(serv.config.Port))
 }
+
+func (serv Server) Router() *gin.Engine {
+	return serv.router
+}

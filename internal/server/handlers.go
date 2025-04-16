@@ -99,7 +99,7 @@ func RegHandler(config *ServerConfig) gin.HandlerFunc {
 
 		// Не нужен. Токены выдаются при /auth/login
 		// SendToken(c, config, &json)
-		c.JSON(http.StatusOK, gin.H{
+		c.JSON(http.StatusCreated, gin.H{
 			"error_code": http.StatusOK,
 			"message":    RegistrationOK,
 			"data":       struct{}{},
