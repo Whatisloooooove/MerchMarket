@@ -14,17 +14,17 @@ func MerchList(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
-			"error_code": http.StatusInternalServerError,
-			"message":    InternalServerError,
-			"data":       struct{}{},
+			error_code: http.StatusInternalServerError,
+			message:    InternalServerError,
+			data:       struct{}{},
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"error_code": http.StatusOK,
-		"message":    MerchListOK,
-		"data":       merchlist,
+		error_code: http.StatusOK,
+		message:    MerchListOK,
+		data:       merchlist,
 	})
 }
 
@@ -55,7 +55,11 @@ func RegHandler(config *ServerConfig) gin.HandlerFunc {
 		var json LoginRequest
 		// см [validation](https://github.com/gin-gonic/gin/blob/master/docs/doc.md#model-binding-and-validation)
 		if err := c.ShouldBindJSON(&json); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{
+				error_code: http.StatusBadRequest,
+				message:    InvalidAppDataError,
+				data:       struct{}{},
+			})
 			return
 		}
 
@@ -68,9 +72,9 @@ func RegHandler(config *ServerConfig) gin.HandlerFunc {
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error_code": http.StatusInternalServerError,
-				"message":    InternalServerError,
-				"data":       struct{}{},
+				error_code: http.StatusInternalServerError,
+				message:    InternalServerError,
+				data:       struct{}{},
 			})
 			return
 		}
@@ -84,25 +88,25 @@ func RegHandler(config *ServerConfig) gin.HandlerFunc {
 			// По идее insert в бд должен быть успешен, если только он не отвалился
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
-					"error_code": http.StatusInternalServerError,
-					"message":    InternalServerError,
-					"data":       struct{}{},
+					error_code: http.StatusInternalServerError,
+					message:    InternalServerError,
+					data:       struct{}{},
 				})
 				return
 			}
 		} else {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error_code": http.StatusBadRequest,
-				"message":    UserExistsError,
-				"data":       struct{}{},
+				error_code: http.StatusBadRequest,
+				message:    UserExistsError,
+				data:       struct{}{},
 			})
 			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"error_code": http.StatusOK,
-			"message":    RegistrationOK,
-			"data":       struct{}{},
+			error_code: http.StatusOK,
+			message:    RegistrationOK,
+			data:       struct{}{},
 		})
 	}
 }
@@ -116,7 +120,11 @@ func LoginHandler(config *ServerConfig) gin.HandlerFunc {
 		log.Println("In login handler!") // Remove after DEBUG !
 		var json LoginRequest
 		if err := c.ShouldBindJSON(&json); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{
+				error_code: http.StatusBadRequest,
+				message:    InvalidAppDataError,
+				data:       struct{}{},
+			})
 			return
 		}
 
@@ -129,18 +137,18 @@ func LoginHandler(config *ServerConfig) gin.HandlerFunc {
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error_code": http.StatusInternalServerError,
-				"message":    InternalServerError,
-				"data":       struct{}{},
+				error_code: http.StatusInternalServerError,
+				message:    InternalServerError,
+				data:       struct{}{},
 			})
 			return
 		}
 
 		if !registered {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error_code": http.StatusBadRequest,
-				"message:":   UserNotFoundError,
-				"data":       struct{}{},
+				error_code: http.StatusBadRequest,
+				message:    UserNotFoundError,
+				data:       struct{}{},
 			})
 			return
 		}

@@ -2,4 +2,4 @@ host: localhost
 port: 8080
 secret: abobasecretkey
 refresh: refreshabobakey
-exptimeout: 900  # В секундах
+exptimeout: 900 # В секундах

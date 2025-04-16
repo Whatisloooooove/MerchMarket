@@ -33,19 +33,19 @@ func AuthRequired(config *ServerConfig) gin.HandlerFunc {
 			return []byte(config.Secret), nil
 		})
 
-		// Пересылаем новый токен, если старый больше не валиден
-		if errors.Is(err, jwt.ErrTokenExpired) {
-			log.Println("token expired, resending...")
-			ResendToken(c, config, token)
-			return
-		}
-
 		if err != nil || !token.Valid {
+			// Пересылаем новый токен, если старый больше не валиден
+			if errors.Is(err, jwt.ErrTokenExpired) {
+				log.Println("token expired, resending...")
+				ResendToken(c, config, token)
+				return
+			}
+
 			log.Println(err)
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error_code": http.StatusUnauthorized,
-				"message":    AuthError,
-				"data":       struct{}{},
+				error_code: http.StatusUnauthorized,
+				message:    AuthError,
+				data:       struct{}{},
 			})
 			// TODO обновление ключа !!!
 			c.Abort()
@@ -59,9 +59,9 @@ func AuthRequired(config *ServerConfig) gin.HandlerFunc {
 			log.Println("DEBUG gin context keys:", c.Keys["claims"])
 		} else {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error_code": http.StatusUnauthorized,
-				"message":    AuthError,
-				"data":       struct{}{},
+				error_code: http.StatusUnauthorized,
+				message:    AuthError,
+				data:       struct{}{},
 			})
 			c.Abort()
 			return
@@ -75,9 +75,9 @@ func AuthRequired(config *ServerConfig) gin.HandlerFunc {
 // В случае успешной генерации пользователь получит JSON формата:
 //
 //		{
-//	   "error_code": ...,
-//	   "message": ...,
-//		  "data": {
+//	   error_code: ...,
+//	   message: ...,
+//		  data: {
 //		  	"token": xxx.yyy.zzz,
 //		  	"refresh": aaa.bbb.ccc,
 //			}
@@ -99,9 +99,9 @@ func SendToken(c *gin.Context, config *ServerConfig, json *LoginRequest) {
 	if err != nil {
 		log.Println("ошибка генерации токена:", err.Error()) // FOR DEBUG ONLY
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error_code": http.StatusInternalServerError,
-			"error":      TokenGenError,
-			"data":       struct{}{},
+			error_code: http.StatusInternalServerError,
+			message:    TokenGenError,
+			data:       struct{}{},
 		})
 		return
 	}
@@ -111,19 +111,19 @@ func SendToken(c *gin.Context, config *ServerConfig, json *LoginRequest) {
 	if err != nil {
 		log.Println("ошибка генерации токена:", err.Error()) // FOR DEBUG ONLY
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error_code": http.StatusInternalServerError,
-			"message":    TokenGenError,
-			"data":       struct{}{},
+			error_code: http.StatusInternalServerError,
+			message:    TokenGenError,
+			data:       struct{}{},
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"error_code": http.StatusOK,
-		"message":    TokensOK,
-		"data": gin.H{
-			"refresh": refreshTokenString,
-			"token":   tokenString,
+		error_code: http.StatusOK,
+		message:    TokensOK,
+		data: gin.H{
+			refresh: refreshTokenString,
+			token:   tokenString,
 		},
 	})
 }
@@ -166,18 +166,18 @@ func ResendToken(c *gin.Context, config *ServerConfig, expiredToken *jwt.Token) 
 	if err != nil {
 		log.Println("ошибка генерации токена:", err.Error()) // FOR DEBUG ONLY
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error_code": http.StatusInternalServerError,
-			"message":    TokenGenError,
-			"data":       struct{}{},
+			error_code: http.StatusInternalServerError,
+			message:    TokenGenError,
+			data:       struct{}{},
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"error_code": http.StatusUnauthorized,
-		"message":    RefreshOK,
-		"data": gin.H{
-			"token": newToken,
+		error_code: http.StatusUnauthorized,
+		message:    RefreshOK,
+		data: gin.H{
+			token: newToken,
 		},
 	})
 
