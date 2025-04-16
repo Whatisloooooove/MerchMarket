@@ -85,7 +85,7 @@ message - сообщение об ошибке (успехе)
 data - данные в формате задаваемом API
 
 Например:
-```json
+```
 {
 	error_code: 200,
 	message: "", # пустой либо "Merch list loaded successfully"
