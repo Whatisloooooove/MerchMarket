@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -33,19 +34,35 @@ func AuthRequired(config *ServerConfig) gin.HandlerFunc {
 		})
 
 		if err != nil || !token.Valid {
+			// Пересылаем новый токен, если старый больше не валиден
+			if errors.Is(err, jwt.ErrTokenExpired) {
+				log.Println("token expired, resending...")
+				ResendToken(c, config, token)
+				return
+			}
+
 			log.Println(err)
-			c.JSON(http.StatusUnauthorized, gin.H{"error": AuthError})
+			c.JSON(http.StatusUnauthorized, gin.H{
+				error_code: http.StatusUnauthorized,
+				message:    AuthError,
+				data:       struct{}{},
+			})
+			// TODO обновление ключа !!!
 			c.Abort()
 			return
 		}
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 			log.Println("Claims:", claims)
-			// Сохраняем claims в мапу gin.Context (для дальнейшего использования обработчиком)
+			// Сораняем claims в мапу gin.Context (для дальнейшего использования обработчиком)
 			c.Set("claims", claims)
 			log.Println("DEBUG gin context keys:", c.Keys["claims"])
 		} else {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": AuthError})
+			c.JSON(http.StatusUnauthorized, gin.H{
+				error_code: http.StatusUnauthorized,
+				message:    AuthError,
+				data:       struct{}{},
+			})
 			c.Abort()
 			return
 		}
@@ -57,10 +74,14 @@ func AuthRequired(config *ServerConfig) gin.HandlerFunc {
 // SendToken возвращает JWT токены для авторизации (с таймаутом) и для обновления первого
 // В случае успешной генерации пользователь получит JSON формата:
 //
-//	{
-//	  "token": xxx.yyy.zzz,
-//	  "refresh": aaa.bbb.ccc,
-//	}
+//		{
+//	   error_code: ...,
+//	   message: ...,
+//		  data: {
+//		  	"token": xxx.yyy.zzz,
+//		  	"refresh": aaa.bbb.ccc,
+//			}
+//		}
 func SendToken(c *gin.Context, config *ServerConfig, json *LoginRequest) {
 	// TODO стоит ли передавать в CreateToken объект LoginRequest
 	// полученный в RegHandler?
@@ -73,18 +94,54 @@ func SendToken(c *gin.Context, config *ServerConfig, json *LoginRequest) {
 
 	// JWT магия
 	// см [jwt](https://jwt.io/introduction)
+	tokenString, err := JwtToken(config, json)
+
+	if err != nil {
+		log.Println("ошибка генерации токена:", err.Error()) // FOR DEBUG ONLY
+		c.JSON(http.StatusInternalServerError, gin.H{
+			error_code: http.StatusInternalServerError,
+			message:    TokenGenError,
+			data:       struct{}{},
+		})
+		return
+	}
+
+	refreshTokenString, err := RefreshToken(config, json)
+
+	if err != nil {
+		log.Println("ошибка генерации токена:", err.Error()) // FOR DEBUG ONLY
+		c.JSON(http.StatusInternalServerError, gin.H{
+			error_code: http.StatusInternalServerError,
+			message:    TokenGenError,
+			data:       struct{}{},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		error_code: http.StatusOK,
+		message:    TokensOK,
+		data: gin.H{
+			refresh: refreshTokenString,
+			token:   tokenString,
+		},
+	})
+}
+
+// JwtToken - генерирует токен авторизации с сроком истечения указанным в config
+func JwtToken(config *ServerConfig, json *LoginRequest) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"log": json.Login,
 		"exp": time.Now().Add(time.Second * time.Duration(config.ExpTimeout)).Unix(),
 	})
 
 	tokenString, err := token.SignedString([]byte(config.Secret))
-	if err != nil {
-		log.Println("ошибка генерации токена:", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": TokenGenError})
-		return
-	}
 
+	return tokenString, err
+}
+
+// RefreshToken - генерирует refresh токен
+func RefreshToken(config *ServerConfig, json *LoginRequest) (string, error) {
 	// TODO: Каким должен быть body рефреш токена?
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"log": json.Login,
@@ -92,18 +149,38 @@ func SendToken(c *gin.Context, config *ServerConfig, json *LoginRequest) {
 	})
 
 	refreshTokenString, err := refreshToken.SignedString([]byte(config.RefreshSecret))
+
+	return refreshTokenString, err
+}
+
+// ResendToken - отправляет новый токен авторизации в случае истечения срока старого токена
+func ResendToken(c *gin.Context, config *ServerConfig, expiredToken *jwt.Token) {
+	var login string
+	if claims, ok := expiredToken.Claims.(jwt.MapClaims); ok {
+		log.Println("Claims:", claims)
+		login = claims["log"].(string) // Здесь точно string!
+	}
+
+	newToken, err := JwtToken(config, &LoginRequest{Login: login})
+
 	if err != nil {
-		log.Println("ошибка генерации токена:", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": TokenGenError})
+		log.Println("ошибка генерации токена:", err.Error()) // FOR DEBUG ONLY
+		c.JSON(http.StatusInternalServerError, gin.H{
+			error_code: http.StatusInternalServerError,
+			message:    TokenGenError,
+			data:       struct{}{},
+		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"error_code": http.StatusOK,
-		"message":    TokensOK,
-		"data": gin.H{
-			"refresh": refreshTokenString,
-			"token":   tokenString,
+		error_code: http.StatusUnauthorized,
+		message:    RefreshOK,
+		data: gin.H{
+			token: newToken,
 		},
 	})
+
+	// Отменяем выполнение хендлеров
+	c.Abort()
 }

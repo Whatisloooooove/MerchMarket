@@ -12,3 +12,10 @@ type CoinsEntry struct {
 	CoinsBefore int    `json:"coins_before"`
 	CoinsAfter  int    `json:"coins_after"`
 }
+
+type User struct {
+	Login    string
+	Password string
+	Email    string
+	Coins    int
+}
