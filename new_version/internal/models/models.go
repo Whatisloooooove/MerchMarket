@@ -20,15 +20,25 @@ type CoinsEntry struct {
 }
 
 type User struct {
+	Id       int
+	Coins    int
 	Login    string
 	Password string
-	Email    string
-	Coins    int
-	Id       int
+}
+
+type LoginRequest struct {
+	Login    string
+	Password string
 }
 
 type TransactionEntry struct {
 	Sender   string
 	Reciever string
 	Amount   int
+}
+
+type PurchaseEntry struct {
+	ItemName string
+	Count    int
+	Date     time.Time
 }

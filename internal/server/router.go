@@ -79,7 +79,7 @@ func (serv Server) SetupRoutes() {
 	{
 		authorized.GET("/merch", MerchList)                 // DONE
 		authorized.GET("/history", WalletHistory)           // NOT YET
-		authorized.POST("/merch/buy")                       // NOT YET
+		authorized.POST("/merch/buy", Buy())                       // NOT YET
 		authorized.POST("/coins/transfer", TransferHandler) // HALF DONE
 	}
 
