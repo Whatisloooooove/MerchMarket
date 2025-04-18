@@ -17,7 +17,7 @@ func (uh *UserHandler) CoinsHistoryHandler(c *gin.Context) {
 	info := c.Keys["claims"].(jwt.MapClaims)
 	userLogin := info["log"].(string)
 
-	coinstHist, err := uh.uServ.CoinsHistory(userLogin)
+	coinstHist, err := uh.uServ.CoinsHistory(c, userLogin)
 
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
@@ -39,7 +39,7 @@ func (uh *UserHandler) PurchaseHistoryHandler(c *gin.Context) {
 	info := c.Keys["claims"].(jwt.MapClaims)
 	userLogin := info["log"].(string)
 
-	pHist, err := uh.uServ.PurchaseHistory(userLogin)
+	pHist, err := uh.uServ.PurchaseHistory(c, userLogin)
 
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
@@ -72,7 +72,7 @@ func (uh *UserHandler) RegHandler() gin.HandlerFunc {
 			return
 		}
 
-		err := uh.uServ.Register(&req)
+		err := uh.uServ.Register(c, &req)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -105,7 +105,7 @@ func (uh *UserHandler) LoginHandler() gin.HandlerFunc {
 			return
 		}
 
-		err := uh.uServ.Login(&req)
+		err := uh.uServ.Login(c, &req)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{

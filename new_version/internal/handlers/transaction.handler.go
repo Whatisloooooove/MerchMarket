@@ -28,7 +28,7 @@ func (th *TransactionHandler) TransferHandler(c *gin.Context) {
 	info := c.Keys["claims"].(jwt.MapClaims)
 	sender := info["log"].(string)
 
-	err := th.tServ.Send(sender, req.Reciever, req.Amount)
+	err := th.tServ.Send(c, sender, req.Reciever, req.Amount)
 
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{

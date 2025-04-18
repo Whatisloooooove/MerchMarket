@@ -2,7 +2,6 @@ package server
 
 import (
 	"log"
-	"merch_service/internal/database"
 	"merch_service/new_version/configs"
 	"merch_service/new_version/internal/handlers"
 	"os"
@@ -21,15 +20,6 @@ type MerchServer struct {
 	mHandler *handlers.MerchHandler
 	tHandler *handlers.TransactionHandler
 }
-
-// требуемый API
-// Метод 	Путь 	Описание
-// POST 	/auth/register 	Регистрация нового сотрудника
-// POST 	/auth/login 	Авторизация (получение JWT)
-// GET 	    /merch 	Список товаров
-// POST 	/merch/buy 	Покупка товара
-// POST 	/coins/transfer 	Перевод монет другому сотруднику
-// GET 	/history 	История операций пользователя
 
 func (serv *MerchServer) LoadConfig(configPath string) {
 	wd, err := os.Getwd()
@@ -75,13 +65,13 @@ func (serv *MerchServer) SetupRoutes() {
 
 	// --- Публичные пути START --- //
 	serv.router.POST("/auth/register", serv.uHandler.RegHandler()) // DONE
-	serv.router.POST("/auth/login", LoginHandler(serv.config))     // DONE
+	// serv.router.POST("/auth/login", LoginHandler(serv.config))     // DONE
 	// --- Публичные пути END --- //
 
 	// --- Приватные пути START --- //
 	// AuthRequired применяется только к путям в данной группе
 	authorized := serv.router.Group("/")
-	authorized.Use(AuthRequired(serv.config))
+	// authorized.Use(AuthRequired(serv.config))
 	{
 		authorized.GET("/merch", serv.mHandler.MerchListHandler)
 		authorized.POST("/merch/buy", serv.mHandler.BuyMerchHandler)
@@ -94,7 +84,7 @@ func (serv *MerchServer) SetupRoutes() {
 }
 
 func (serv MerchServer) Start() {
-	database.InitDB()
+	// Здесь требуется инициализация базы данных
 	serv.SetupRoutes()
 	serv.router.Run(serv.config.Host + ":" + strconv.Itoa(serv.config.Port))
 }

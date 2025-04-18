@@ -41,8 +41,8 @@ type PurchaseEntry struct {
 // Для хендлеров
 
 type LoginRequest struct {
-	Login string `json:"login"`
-	Pass  string `json:"pass"`
+	Login    string `json:"login"`
+	Password string `json:"pass"`
 }
 
 type PurchaseRequest struct {
