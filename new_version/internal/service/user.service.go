@@ -7,7 +7,7 @@ import (
 
 type UserServiceInterface interface {
 	Login(logReq *models.LoginRequest) error
-	
+
 	Register(logReq *models.LoginRequest) error
 
 	CoinsHistory(login string) ([]models.CoinsEntry, error)

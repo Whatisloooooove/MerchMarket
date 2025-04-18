@@ -26,11 +26,6 @@ type User struct {
 	Password string
 }
 
-type LoginRequest struct {
-	Login    string
-	Password string
-}
-
 type TransactionEntry struct {
 	Sender   string
 	Reciever string
@@ -41,4 +36,21 @@ type PurchaseEntry struct {
 	ItemName string
 	Count    int
 	Date     time.Time
+}
+
+// Для хендлеров
+
+type LoginRequest struct {
+	Login string `json:"login"`
+	Pass  string `json:"pass"`
+}
+
+type PurchaseRequest struct {
+	ItemName string `json:"name"`
+	Count    int    `json:"count"`
+}
+
+type TransactionRequest struct {
+	Reciever string `json:"reciever"`
+	Amount   int    `json:"amount"`
 }
