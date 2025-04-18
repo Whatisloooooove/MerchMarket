@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"merch_service/new_version/internal/storage"
 )
 
@@ -17,6 +18,9 @@ type TransactionService struct {
 	TransactionStorage storage.Storage
 }
 
+// Send - проверяет есть ли оба переданных пользователя, 
+// хватает ли денег отправителю для совершения операции,
+// и совершает операцию отправки
 func (t *TransactionService) Send(ctx context.Context, sender, recv string, amount int) error {
 	sendUser, err := t.TransactionStorage.FindUserByLogin(ctx, sender)
 	if err != nil {
@@ -26,6 +30,10 @@ func (t *TransactionService) Send(ctx context.Context, sender, recv string, amou
 	recvUser, err := t.TransactionStorage.FindUserByLogin(ctx, recv)
 	if err != nil {
 		return err
+	}
+
+	if sendUser.Coins < amount {
+		return fmt.Errorf("у вас недостаточно средств")
 	}
 
 	err = t.TransactionStorage.MakeTransaction(ctx, sendUser, recvUser, amount)

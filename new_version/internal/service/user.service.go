@@ -16,10 +16,10 @@ type UserServiceInterface interface {
 	// и, если не было, добавляет его и возвращает nil
 	Register(ctx context.Context, regReq *models.LoginRequest) error
 
-	// CoinsHistory - возвращает слайс с историей изменения баланса
+	// CoinsHistory - возвращает историю изменения баланса пользователя
 	CoinsHistory(ctx context.Context, login string) ([]models.CoinsEntry, error)
 
-	// PurchaseHistory - возвращает слайс с историей покупок мерча
+	// PurchaseHistory - возвращает историю покупок
 	PurchaseHistory(ctx context.Context, login string) ([]models.PurchaseEntry, error)
 }
 
@@ -30,6 +30,8 @@ type UserService struct {
 	UserStorage storage.Storage
 }
 
+// Login - проверяет есть ли такой пользователь
+// и, если был возвращет nil вместо ошибки
 func (u *UserService) Login(ctx context.Context, logReq *models.LoginRequest) error {
 	user, err := u.UserStorage.FindUserByLogin(ctx, logReq.Login)
 	if err != nil {
@@ -43,6 +45,8 @@ func (u *UserService) Login(ctx context.Context, logReq *models.LoginRequest) er
 	return nil
 }
 
+// Register - проверяет не было ли такого пользователя уже
+// и, если не было, добавляет его и возвращает nil
 func (u *UserService) Register(ctx context.Context, regReq *models.LoginRequest) error {
 	_, err := u.UserStorage.FindUserByLogin(ctx, regReq.Login)
 	if err == nil {
@@ -56,6 +60,8 @@ func (u *UserService) Register(ctx context.Context, regReq *models.LoginRequest)
 	return nil
 }
 
+// CoinsHistory - проверяет существует ли переданный пользователь
+// и возвращает слайс с историей изменения баланса
 func (u *UserService) CoinsHistory(ctx context.Context, login string) ([]models.CoinsEntry, error) {
 	user, err := u.UserStorage.FindUserByLogin(ctx, login)
 	if err != nil {
@@ -69,6 +75,8 @@ func (u *UserService) CoinsHistory(ctx context.Context, login string) ([]models.
 	return coinsHistory, nil
 }
 
+// PurchaseHistory - проверяет существует ли переданный пользователь
+// и возвращает слайс с историей покупок мерча
 func (u *UserService) PurchaseHistory(ctx context.Context, login string) ([]models.PurchaseEntry, error) {
 	user, err := u.UserStorage.FindUserByLogin(ctx, login)
 	if err != nil {
