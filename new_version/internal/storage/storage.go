@@ -25,5 +25,8 @@ type Storage interface {
 	MerchByName(ctx context.Context, merchName string) (models.Item, error)
 
 	// CreateUser - добавляет юзера в базу данных
-	CreateUser(ctx context.Context, user *models.User) error 
+	CreateUser(ctx context.Context, user *models.User) error
+
+	// Buy - покупает мерч и возвращает баланс
+	Buy(ctx context.Context, user *models.User, merchName string, count int) (int, error)
 }
