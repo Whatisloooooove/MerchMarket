@@ -24,7 +24,7 @@ type MerchService struct {
 	MerchStorage storage.Storage
 }
 
-// Buy - проверяет наличие мерча и возможность пользователя купить мерч,
+// Buy - проверяет наличие мерча и возможность пользователя купить мерч и
 //
 //	далее совершает покупку мерча
 func (m *MerchService) Buy(ctx context.Context, login, merchName string, count int) (int, error) {
