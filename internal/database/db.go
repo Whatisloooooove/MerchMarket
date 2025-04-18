@@ -59,15 +59,6 @@ func InitDB() {
 		pool:   pool,
 		config: dbconf,
 	}
-
-	// var greeting string
-	// err = db.db.QueryRow(context.Background(), "select 'Hello, world!'").Scan(&greeting)
-	// if err != nil {
-	// 	fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
-	// 	os.Exit(1)
-	// }
-
-	// fmt.Println(greeting)
 }
 
 // Connect - обертка для доступа к базе данных из вне
