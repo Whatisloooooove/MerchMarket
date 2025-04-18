@@ -77,10 +77,10 @@ func (serv Server) SetupRoutes() {
 	authorized := serv.router.Group("/")
 	authorized.Use(AuthRequired(serv.config))
 	{
-		authorized.GET("/merch", MerchList)       // DONE
-		authorized.GET("/history", WalletHistory) // NOT YET
-		authorized.POST("/merch/buy")             // NOT YET
-		authorized.POST("/coins/transfer")        // NOT YET
+		authorized.GET("/merch", MerchList)                 // DONE
+		authorized.GET("/history", WalletHistory)           // NOT YET
+		authorized.POST("/merch/buy")                       // NOT YET
+		authorized.POST("/coins/transfer", TransferHandler) // HALF DONE
 	}
 
 	// --- Приватные пути END --- //

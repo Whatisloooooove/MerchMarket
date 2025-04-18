@@ -18,7 +18,7 @@ import (
 // к API, срабатывающая до перехода к обработке запроса
 func AuthRequired(config *ServerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log.Println("HELLO! FROM AUTH MIDDLEWARE") // REMOVE AFTER DEBUG
+		log.Println("Проверка доступа...") // REMOVE AFTER DEBUG
 
 		// Зачем нужен Bearer в ключе??? (Мы поддерживаем только JWT, или нет?)
 		tokenString := c.GetHeader("Authorization")
@@ -56,7 +56,7 @@ func AuthRequired(config *ServerConfig) gin.HandlerFunc {
 			log.Println("Claims:", claims)
 			// Сораняем claims в мапу gin.Context (для дальнейшего использования обработчиком)
 			c.Set("claims", claims)
-			log.Println("DEBUG gin context keys:", c.Keys["claims"])
+			// log.Println("DEBUG gin context keys:", c.Keys["claims"])
 		} else {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				error_code: http.StatusUnauthorized,
@@ -67,6 +67,7 @@ func AuthRequired(config *ServerConfig) gin.HandlerFunc {
 			return
 		}
 		// Если авторизация успешна, вызвваем обработчик
+		log.Println("Авторизация успешна, идем в хендлер...")
 		c.Next()
 	}
 }
@@ -151,6 +152,11 @@ func RefreshToken(config *ServerConfig, json *LoginRequest) (string, error) {
 	refreshTokenString, err := refreshToken.SignedString([]byte(config.RefreshSecret))
 
 	return refreshTokenString, err
+}
+
+type TransactionRequest struct {
+	Reciever string `json:"reciever"`
+	Amount   int    `json:"amount"`
 }
 
 // ResendToken - отправляет новый токен авторизации в случае истечения срока старого токена

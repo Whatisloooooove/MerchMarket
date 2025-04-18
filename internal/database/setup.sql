@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS merchshop.users (
     user_id           SERIAL PRIMARY KEY,
     -- first_name        VARCHAR(100) NOT NULL,
     -- last_name         VARCHAR(100) NOT NULL,
-    login             VARCHAR(100) NOT NULL,
+    login             VARCHAR(100) NOT NULL UNIQUE, -- будем идентифицировать по логину (для простоты)
     password          VARCHAR(100) NOT NULL, -- Пароль храним тут же?
     email             VARCHAR(100) NOT NULL UNIQUE,
     coins             INTEGER NOT NULL DEFAULT 1000 CHECK (coins >= 0)
@@ -29,12 +29,12 @@ CREATE TABLE IF NOT EXISTS merchshop.merch (
 CREATE TABLE IF NOT EXISTS merchshop.transactions (
     transaction_id    SERIAL PRIMARY KEY,
     sender_id         INTEGER NOT NULL,
-    receiver_id       INTEGER NOT NULL,
+    reciever_id       INTEGER NOT NULL,
     amount            INTEGER NOT NULL CHECK (amount > 0),
     transaction_date  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (sender_id) REFERENCES merchshop.users(user_id),
-    FOREIGN KEY (receiver_id) REFERENCES merchshop.users(user_id)
+    FOREIGN KEY (reciever_id) REFERENCES merchshop.users(user_id)
 );
 
 -- Таблица покупок товаров

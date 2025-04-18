@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func MerchList(c *gin.Context) {
@@ -29,9 +30,28 @@ func MerchList(c *gin.Context) {
 }
 
 func WalletHistory(c *gin.Context) {
+	log.Println("В хендлере пользовательской истории!")
+
+	info := c.Keys["claims"].(jwt.MapClaims)
+	userLogin := info["log"].(string)
+
+	history, err := database.Connect().CoinsHistory(&models.User{
+		Login: userLogin,
+	})
+
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			error_code: http.StatusInternalServerError,
+			message:    err.Error(),
+			data:       struct{}{},
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"after":  123,
-		"before": 321,
+		error_code: http.StatusOK,
+		message:    HistoryOK,
+		data:       history,
 	})
 }
 
@@ -155,4 +175,49 @@ func LoginHandler(config *ServerConfig) gin.HandlerFunc {
 
 		SendToken(c, config, &json)
 	}
+}
+
+func TransferHandler(c *gin.Context) {
+	// Логин отправляющего хранится в c.Keys["claims"] (см authorization.go:AuthRequired)
+	// Достаточно узнать логин получателя и сумму
+	var transactionReq TransactionRequest
+
+	log.Println("В хендлере транзакций!")
+
+	// Повторяющийся код, сделать умную обертку TODO
+	if err := c.ShouldBindJSON(&transactionReq); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			error_code: http.StatusBadRequest,
+			message:    InvalidAppDataError,
+			data:       struct{}{},
+		})
+		return
+	}
+
+	info := c.Keys["claims"].(jwt.MapClaims) // (cм. замечание выше)
+	log.Printf("Информация о переводе:\n\tОтправитель: %s\n\tПолучатель: %s\n\tСумма: %d\n",
+		info["log"],
+		transactionReq.Reciever,
+		transactionReq.Amount)
+
+	err := database.Connect().TransferCoins(&models.TransactionEntry{
+		Sender:   info["log"].(string),
+		Reciever: transactionReq.Reciever,
+		Amount:   transactionReq.Amount,
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			error_code: http.StatusInternalServerError, // or http.StatusBadRequest
+			message:    InternalServerError,            // TODO, оповестить, что возможно не хватает баланса
+			data:       struct{}{},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		error_code: http.StatusOK,
+		message:    TransferOK,
+		data:       struct{}{}, // можно возвращать число оставшихся монет
+	})
 }
