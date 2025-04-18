@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"merch_service/new_version/configs"
 	"merch_service/new_version/internal/models"
 	"merch_service/new_version/internal/service"
 	"net/http"
@@ -92,7 +93,7 @@ func (uh *UserHandler) RegHandler() gin.HandlerFunc {
 	}
 }
 
-func (uh *UserHandler) LoginHandler() gin.HandlerFunc {
+func (uh *UserHandler) LoginHandler(config *configs.ServerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req models.LoginRequest
 
@@ -116,6 +117,6 @@ func (uh *UserHandler) LoginHandler() gin.HandlerFunc {
 			return
 		}
 
-		// SendToken(c, config, &json)
+		SendToken(c, config, &req)
 	}
 }

@@ -64,8 +64,8 @@ func (serv *MerchServer) SetupRoutes() {
 	// })
 
 	// --- Публичные пути START --- //
-	serv.router.POST("/auth/register", serv.uHandler.RegHandler()) // DONE
-	// serv.router.POST("/auth/login", LoginHandler(serv.config))     // DONE
+	serv.router.POST("/auth/register", serv.uHandler.RegHandler())
+	serv.router.POST("/auth/login", serv.uHandler.LoginHandler(serv.config))
 	// --- Публичные пути END --- //
 
 	// --- Приватные пути START --- //
@@ -76,7 +76,7 @@ func (serv *MerchServer) SetupRoutes() {
 		authorized.GET("/merch", serv.mHandler.MerchListHandler)
 		authorized.POST("/merch/buy", serv.mHandler.BuyMerchHandler)
 		authorized.GET("/history/coins", serv.uHandler.CoinsHistoryHandler)
-		authorized.GET("/history/purchase")
+		authorized.GET("/history/purchase", serv.uHandler.PurchaseHistoryHandler)
 		authorized.POST("/coins/transfer", serv.tHandler.TransferHandler)
 	}
 
