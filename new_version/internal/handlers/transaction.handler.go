@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"merch_service/new_version/internal/models"
 	"merch_service/new_version/internal/service"
 	"net/http"
@@ -22,14 +23,13 @@ func NewTransactionHandler(tServ service.TransactionServiceInterface) *Transacti
 
 // TransferHandler - функция обработчик переводов монет
 func (th *TransactionHandler) TransferHandler(c *gin.Context) {
+	response := DefaultResponse()
 	var req models.TransactionRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			error_code: http.StatusBadRequest,
-			message:    InvalidAppDataError,
-			data:       struct{}{},
-		})
+		response.ErrorCode = http.StatusBadRequest
+		response.Message = InvalidAppDataError
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -38,18 +38,18 @@ func (th *TransactionHandler) TransferHandler(c *gin.Context) {
 
 	err := th.tServ.Send(c, sender, req.Reciever, req.Amount)
 
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			error_code: http.StatusInternalServerError,
-			message:    InternalServerError,
-			data:       struct{}{},
-		})
+	switch {
+	case errors.Is(err, models.ErrNotEnoughCoins):
+		response.ErrorCode = http.StatusBadRequest
+		response.Message = NotEnoughCoinsError
+		c.JSON(http.StatusBadRequest, response)
+		return
+	case err != nil:
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		error_code: http.StatusOK,
-		message:    TransferOK,
-		data:       struct{}{},
-	})
+	response.ErrorCode = http.StatusOK
+	response.Message = TransferOK
+	c.JSON(http.StatusOK, response)
 }
