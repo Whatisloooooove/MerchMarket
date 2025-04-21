@@ -9,10 +9,18 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// TransactionHandler - структура мост, для связывания уровня хендлеров
+// с транзакционным сервисом
 type TransactionHandler struct {
 	tServ service.TransactionServiceInterface
 }
 
+// NewTransactionHandler - конуструирует *TransactionHandler по TransactionServiceInterface
+func NewTransactionHandler(tServ service.TransactionServiceInterface) *TransactionHandler {
+	return &TransactionHandler{tServ}
+}
+
+// TransferHandler - функция обработчик переводов монет
 func (th *TransactionHandler) TransferHandler(c *gin.Context) {
 	var req models.TransactionRequest
 

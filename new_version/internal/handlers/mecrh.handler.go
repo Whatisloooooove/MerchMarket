@@ -9,10 +9,18 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// MerchHandler - структура мост, для связывания уровня хендлеров
+// с сервисом мерча
 type MerchHandler struct {
 	mServ service.MerchServiceInterface
 }
 
+// NewMerchHandler - конуструирует *MerchHandler по MerchServiceInterface
+func NewMerchHandler(mServ service.MerchServiceInterface) *MerchHandler {
+	return &MerchHandler{mServ}
+}
+
+// MerchListHanlder - функция обработчик, отвечающий за возврат списка мерча
 func (mh *MerchHandler) MerchListHandler(c *gin.Context) {
 	merchlist, err := mh.mServ.MerchList(c)
 
@@ -32,6 +40,7 @@ func (mh *MerchHandler) MerchListHandler(c *gin.Context) {
 	})
 }
 
+// BuyMerchHandler - функция обработчик, отвечающий за покупку мерча
 func (mh *MerchHandler) BuyMerchHandler(c *gin.Context) {
 	var req models.PurchaseRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

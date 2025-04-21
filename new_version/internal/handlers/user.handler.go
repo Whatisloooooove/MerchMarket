@@ -10,10 +10,19 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// UserHandler - структура мост, для связывания уровня хендлеров
+// с пользовательским сервисом
 type UserHandler struct {
 	uServ service.UserServiceInterface
 }
 
+// NewUserHandler - конуструирует *UserHandler по UserServiceInterface
+func NewUserHandler(uServ service.UserServiceInterface) *UserHandler {
+	return &UserHandler{uServ}
+}
+
+// CoinsHistoryHandler - функция обработчик, отвечающий на запрос историй кошелька пользователя
+// В случае успеха, в ответе возвращает историю кошелька в поле data
 func (uh *UserHandler) CoinsHistoryHandler(c *gin.Context) {
 	info := c.Keys["claims"].(jwt.MapClaims)
 	userLogin := info["log"].(string)
@@ -36,6 +45,8 @@ func (uh *UserHandler) CoinsHistoryHandler(c *gin.Context) {
 	})
 }
 
+// PurchaseHistoryHandler - функция обработчик, отвечающий на запрос покупок пользователя
+// В случае успеха, в ответе возвращает список покупок в поле data
 func (uh *UserHandler) PurchaseHistoryHandler(c *gin.Context) {
 	info := c.Keys["claims"].(jwt.MapClaims)
 	userLogin := info["log"].(string)
@@ -59,6 +70,7 @@ func (uh *UserHandler) PurchaseHistoryHandler(c *gin.Context) {
 
 }
 
+// RegHandler - обработчик, отвечающий за регистрацию пользователя
 func (uh *UserHandler) RegHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req models.LoginRequest
@@ -93,6 +105,8 @@ func (uh *UserHandler) RegHandler() gin.HandlerFunc {
 	}
 }
 
+// RegHandler - обработчик, отвечающий за аутентификацию пользователя
+// В случае успеха, в ответе возварщает JWT и  JWTrefresh токены в поле data
 func (uh *UserHandler) LoginHandler(config *configs.ServerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req models.LoginRequest

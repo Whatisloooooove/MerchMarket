@@ -1,19 +1,29 @@
 package server
 
 import (
+	"context"
 	"log"
 	"merch_service/new_version/configs"
 	"merch_service/new_version/internal/handlers"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v3"
 )
 
+// MerchServer - структура сервера, имплементация Server
+// Содержит хендлеры
+//   - UserHandler
+//   - MerchHandler
+//   - TransactionHandler
+//
+// для обработки соответстующих API запросов
 type MerchServer struct {
-	router *gin.Engine
+	http   *http.Server
 	config *configs.ServerConfig
 
 	uHandler *handlers.UserHandler
@@ -21,7 +31,7 @@ type MerchServer struct {
 	tHandler *handlers.TransactionHandler
 }
 
-func (serv *MerchServer) LoadConfig(configPath string) {
+func (serv *MerchServer) loadConfig(configPath string) {
 	wd, err := os.Getwd()
 	if err != nil {
 		log.Fatalln("не удалось получить путь до рабочей директорий:", err.Error())
@@ -47,31 +57,27 @@ func NewMerchServer() *MerchServer {
 	router := gin.Default()
 
 	newServ := MerchServer{
-		router: router,
+		http: &http.Server{
+			Handler: router,
+		},
 	}
 
-	newServ.LoadConfig("configs/server_config.yml")
+	newServ.loadConfig("configs/server_config.yml")
 
 	return &newServ
 }
 
 func (serv *MerchServer) SetupRoutes() {
-	// REMOVE AFTER DEBUG !!!
-	// serv.router.POST("/ping", func(c *gin.Context) {
-	// 	val := c.GetHeader("Abba")
-	// 	log.Println("DEBUG:", val, len(val))
-	// 	c.String(200, "OK!")
-	// })
-
+	router := serv.http.Handler.(*gin.Engine)
 	// --- Публичные пути START --- //
-	serv.router.POST("/auth/register", serv.uHandler.RegHandler())
-	serv.router.POST("/auth/login", serv.uHandler.LoginHandler(serv.config))
+	router.POST("/auth/register", serv.uHandler.RegHandler())
+	router.POST("/auth/login", serv.uHandler.LoginHandler(serv.config))
 	// --- Публичные пути END --- //
 
 	// --- Приватные пути START --- //
 	// AuthRequired применяется только к путям в данной группе
-	authorized := serv.router.Group("/")
-	// authorized.Use(AuthRequired(serv.config))
+	authorized := router.Group("/")
+	authorized.Use(handlers.AuthRequired(serv.config))
 	{
 		authorized.GET("/merch", serv.mHandler.MerchListHandler)
 		authorized.POST("/merch/buy", serv.mHandler.BuyMerchHandler)
@@ -83,8 +89,30 @@ func (serv *MerchServer) SetupRoutes() {
 	// --- Приватные пути END --- //
 }
 
-func (serv MerchServer) Start() {
-	// Здесь требуется инициализация базы данных
+// Start - настраивает пути API и запускает сервер по адресу в serverConfig
+func (serv *MerchServer) Start() {
 	serv.SetupRoutes()
-	serv.router.Run(serv.config.Host + ":" + strconv.Itoa(serv.config.Port))
+
+	// graceful stop (см. https://gin-gonic.com/en/docs/examples/graceful-restart-or-stop/)
+	serv.http.Addr = serv.config.Host + ":" + strconv.Itoa(serv.config.Port)
+
+	if err := serv.http.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("listen: %s\n", err)
+	}
+}
+
+// Stop - остановка сервера, только для тестирования
+// Для правильного использования нужно выполнить Start в отдельной горутине
+func (serv *MerchServer) Stop() {
+	log.Println("Выключение сервера...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := serv.http.Shutdown(ctx); err != nil {
+		log.Println("Server Shutdown:", err)
+	}
+
+	<-ctx.Done()
+	log.Println("Таймаут в 5с.")
+	log.Println("Сервер выключен")
 }
