@@ -19,7 +19,6 @@ type MerchStorage interface {
 	// Update обновляет информацию по name на основе экземпляра Item, возвращает ошибку
 	Update(ctx context.Context, name string, merch *models.Item) error
 
-	// Delete удаляет мерч по имени, возвращает ошибку
+	// Delete удаляет мерч по name, возвращает ошибку
 	Delete(ctx context.Context, name string) error
 }
-
