@@ -8,6 +8,8 @@ const (
 	WrongPassError      = "неверный пароль" // Нужен ли он вообще (см handlers.go)
 	InternalServerError = "ошибка на сервере"
 	InvalidAppDataError = "неверный формат данных в запросе"
+	NotEnoughMerchError = "недостаточно товара на складе"
+	NotEnoughCoinsError = "недостаточно монет для покупки"
 )
 
 const (

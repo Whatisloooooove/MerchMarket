@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"merch_service/new_version/internal/models"
 	"merch_service/new_version/internal/storage"
 )
@@ -34,7 +33,7 @@ func (m *MerchService) Buy(ctx context.Context, login, merchName string, count i
 	}
 
 	if merch.Stock < count {
-		return -1, fmt.Errorf("на складе нет такого количества мерча")
+		return -1, models.ErrNotEnoughMerch
 	}
 
 	user, err := m.MerchStorage.FindUserByLogin(ctx, login)
@@ -43,7 +42,7 @@ func (m *MerchService) Buy(ctx context.Context, login, merchName string, count i
 	}
 
 	if user.Coins < merch.Price*count {
-		return -1, fmt.Errorf("у вас недостаточно средств")
+		return -1, models.ErrNotEnoughCoins
 	}
 
 	balance, err := m.MerchStorage.Buy(ctx, user, merchName, count)

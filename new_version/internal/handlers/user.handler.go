@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"merch_service/new_version/configs"
 	"merch_service/new_version/internal/models"
 	"merch_service/new_version/internal/service"
@@ -24,84 +25,76 @@ func NewUserHandler(uServ service.UserServiceInterface) *UserHandler {
 // CoinsHistoryHandler - функция обработчик, отвечающий на запрос историй кошелька пользователя
 // В случае успеха, в ответе возвращает историю кошелька в поле data
 func (uh *UserHandler) CoinsHistoryHandler(c *gin.Context) {
+	response := DefaultResponse()
+
 	info := c.Keys["claims"].(jwt.MapClaims)
 	userLogin := info["log"].(string)
 
-	coinstHist, err := uh.uServ.CoinsHistory(c, userLogin)
+	coinsHist, err := uh.uServ.CoinsHistory(c, userLogin)
 
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			error_code: http.StatusInternalServerError,
-			message:    InternalServerError,
-			data:       struct{}{},
-		})
+		c.JSON(http.StatusOK, response)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		error_code: http.StatusOK,
-		message:    HistoryCoinsOK,
-		data:       coinstHist,
-	})
+	response.ErrorCode = http.StatusOK
+	response.Message = HistoryCoinsOK
+	response.Data = coinsHist
+	c.JSON(http.StatusOK, response)
 }
 
 // PurchaseHistoryHandler - функция обработчик, отвечающий на запрос покупок пользователя
 // В случае успеха, в ответе возвращает список покупок в поле data
 func (uh *UserHandler) PurchaseHistoryHandler(c *gin.Context) {
+	response := DefaultResponse()
+
 	info := c.Keys["claims"].(jwt.MapClaims)
 	userLogin := info["log"].(string)
 
 	pHist, err := uh.uServ.PurchaseHistory(c, userLogin)
 
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			error_code: http.StatusInternalServerError,
-			message:    InternalServerError,
-			data:       struct{}{},
-		})
+		c.JSON(http.StatusOK, response)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		error_code: http.StatusOK,
-		message:    HistoryPurchOK,
-		data:       pHist,
-	})
-
+	response.ErrorCode = http.StatusOK
+	response.Message = HistoryPurchOK
+	response.Data = pHist
+	c.JSON(http.StatusOK, response)
 }
 
 // RegHandler - обработчик, отвечающий за регистрацию пользователя
 func (uh *UserHandler) RegHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		response := DefaultResponse()
 		var req models.LoginRequest
 
 		// см [validation](https://github.com/gin-gonic/gin/blob/master/docs/doc.md#model-binding-and-validation)
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				error_code: http.StatusBadRequest,
-				message:    InvalidAppDataError,
-				data:       struct{}{},
-			})
+			response.ErrorCode = http.StatusBadRequest
+			response.Message = InvalidAppDataError
+			c.JSON(http.StatusBadRequest, response)
 			return
 		}
 
 		err := uh.uServ.Register(c, &req)
 
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				error_code: http.StatusInternalServerError,
-				message:    err.Error(),
-				data:       struct{}{},
-			})
+		switch {
+		case errors.Is(err, models.ErrUserExists):
+			response.ErrorCode = http.StatusBadRequest
+			response.Message = UserExistsError
+			c.JSON(http.StatusBadRequest, response)
+			return
+		case err != nil:
+			c.JSON(http.StatusInternalServerError, response)
 			return
 		}
 
 		// err == nil <=> Пользователь успешно зарегистрирован
-		c.JSON(http.StatusOK, gin.H{
-			error_code: http.StatusOK,
-			message:    RegistrationOK,
-			data:       struct{}{},
-		})
+		response.ErrorCode = http.StatusOK
+		response.Message = RegistrationOK
+		c.JSON(http.StatusOK, response)
 	}
 }
 
@@ -109,25 +102,26 @@ func (uh *UserHandler) RegHandler() gin.HandlerFunc {
 // В случае успеха, в ответе возварщает JWT и  JWTrefresh токены в поле data
 func (uh *UserHandler) LoginHandler(config *configs.ServerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		response := DefaultResponse()
+
 		var req models.LoginRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				error_code: http.StatusBadRequest,
-				message:    InvalidAppDataError,
-				data:       struct{}{},
-			})
+			response.ErrorCode = http.StatusBadRequest
+			response.Message = InvalidAppDataError
+			c.JSON(http.StatusBadRequest, response)
 			return
 		}
 
 		err := uh.uServ.Login(c, &req)
 
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				error_code: http.StatusInternalServerError,
-				message:    InternalServerError,
-				data:       struct{}{},
-			})
+		switch {
+		case errors.Is(err, models.ErrWrongPassword):
+			response.ErrorCode = http.StatusBadRequest
+			response.Message = WrongPassError
+			return
+		case err != nil:
+			c.JSON(http.StatusInternalServerError, response)
 			return
 		}
 

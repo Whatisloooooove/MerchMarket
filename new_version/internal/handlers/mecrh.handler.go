@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"merch_service/new_version/internal/models"
 	"merch_service/new_version/internal/service"
 	"net/http"
@@ -22,33 +23,30 @@ func NewMerchHandler(mServ service.MerchServiceInterface) *MerchHandler {
 
 // MerchListHanlder - функция обработчик, отвечающий за возврат списка мерча
 func (mh *MerchHandler) MerchListHandler(c *gin.Context) {
+	response := DefaultResponse()
+
 	merchlist, err := mh.mServ.MerchList(c)
 
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			error_code: http.StatusInternalServerError,
-			message:    InternalServerError,
-			data:       struct{}{},
-		})
+		c.JSON(http.StatusOK, response)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		error_code: http.StatusOK,
-		message:    MerchListOK,
-		data:       merchlist,
-	})
+	response.ErrorCode = http.StatusOK
+	response.Message = MerchListOK
+	response.Data = merchlist
+	c.JSON(http.StatusOK, response)
 }
 
 // BuyMerchHandler - функция обработчик, отвечающий за покупку мерча
 func (mh *MerchHandler) BuyMerchHandler(c *gin.Context) {
+	response := DefaultResponse()
+
 	var req models.PurchaseRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			error_code: http.StatusBadRequest,
-			message:    InvalidAppDataError,
-			data:       struct{}{},
-		})
+		response.ErrorCode = http.StatusBadRequest
+		response.Message = InvalidAppDataError
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -59,18 +57,19 @@ func (mh *MerchHandler) BuyMerchHandler(c *gin.Context) {
 
 	coins, err := mh.mServ.Buy(c, userLogin, req.ItemName, req.Count)
 
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			error_code: http.StatusInternalServerError,
-			message:    InternalServerError,
-			data:       struct{}{},
-		})
+	switch {
+	case errors.Is(err, models.ErrNotEnoughMerch):
+		response.ErrorCode = http.StatusBadRequest
+		response.Message = NotEnoughMerchError
+		c.JSON(http.StatusOK, response)
+		return
+	case err != nil:
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		error_code: http.StatusOK,
-		message:    PurchaseOK,
-		data:       coins,
-	})
+	response.ErrorCode = http.StatusOK
+	response.Message = PurchaseOK
+	response.Data = coins
+	c.JSON(http.StatusOK, response)
 }
