@@ -10,9 +10,9 @@ import (
 func main() {
 
 	// Инициализация базы данных (Storage interface) (можно заменить на свои моки)
-	userStorage := mock.NewUserStorage()
-	merchStorage := mock.NewMerchStorage()
-	transactionStorage := mock.NewTransactionStorage()
+	userStorage := mock.NewMockUserStorage()
+	merchStorage := mock.NewMockMerchStorage()
+	transactionStorage := mock.NewMockTransactionStorage()
 
 	// Инициализация сервисов
 	userService := service.NewUserService(userStorage)
@@ -23,7 +23,6 @@ func main() {
 	userHandler := handlers.NewUserHandler(userService)
 	merchHandler := handlers.NewMerchHandler(merchService)
 	transactionHandler := handlers.NewTransactionHandler(transactionService)
-	// (можно заменить на свои моки)
 
 	// Эти серивисы передаются в Server
 	serv := server.NewMerchServer(userHandler, transactionHandler, merchHandler)

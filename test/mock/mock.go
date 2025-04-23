@@ -22,7 +22,7 @@ type MockUserStorage struct {
 	purch map[string][]models.PurchaseEntry
 }
 
-func NewUserStorage() *MockUserStorage {
+func NewMockUserStorage() *MockUserStorage {
 	return &MockUserStorage{
 		users: make(map[string]*models.User),
 		coins: make(map[string][]models.CoinsEntry),
@@ -94,32 +94,13 @@ type MockMerchStorage struct {
 	items map[string]*models.Item
 }
 
-func NewMerchStorage() *MockMerchStorage {
+func NewMockMerchStorage() *MockMerchStorage {
 	return &MockMerchStorage{
 		items: map[string]*models.Item{
 			"Футболка": {Name: "Футболка", Price: 50, Stock: 10},
 			"Кружка":   {Name: "Кружка", Price: 30, Stock: 5},
 		},
 	}
-}
-
-func (s *MockMerchStorage) Buy(ctx context.Context, user *models.User, merchName string, count int) (int, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	item, exists := s.items[merchName]
-	if !exists {
-		return -1, models.ErrNoMerchInStock
-	}
-
-	if item.Stock < count {
-		return -1, models.ErrNotEnoughMerch
-	}
-
-	user.Coins -= item.Price * count
-	item.Stock -= count
-
-	return user.Coins, nil
 }
 
 func (s *MockMerchStorage) Get(ctx context.Context, name string) (*models.Item, error) {
@@ -144,12 +125,23 @@ func (s *MockMerchStorage) GetList(ctx context.Context) ([]*models.Item, error) 
 	return list, nil
 }
 
-// Остальные методы (не требуются для старта)
-func (s *MockMerchStorage) Create(ctx context.Context, merch *models.Item) error { return nil }
-func (s *MockMerchStorage) Update(ctx context.Context, name string, merch *models.Item) error {
+func (s *MockMerchStorage) Update(ctx context.Context, user *models.User, merch *models.Item) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	item, exists := s.items[merch.Name]
+	if !exists {
+		return models.ErrNoMerchInStock
+	}
+	
+	user.Coins -= item.Price * merch.Stock
+	item.Stock -= merch.Stock
+
 	return nil
 }
-func (s *MockMerchStorage) Delete(ctx context.Context, name string) error { return nil }
+
+func (s *MockMerchStorage) Create(ctx context.Context, merch *models.Item) error { return nil }
+func (s *MockMerchStorage) Delete(ctx context.Context, name string) error        { return nil }
 
 // MockTransactionStorage реализация
 type MockTransactionStorage struct {
@@ -157,7 +149,7 @@ type MockTransactionStorage struct {
 	transactions []models.TransactionEntry
 }
 
-func NewTransactionStorage() *MockTransactionStorage {
+func NewMockTransactionStorage() *MockTransactionStorage {
 	return &MockTransactionStorage{}
 }
 

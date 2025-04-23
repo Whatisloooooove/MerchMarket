@@ -16,12 +16,10 @@ type MerchStorage interface {
 	// GetList возвращает слайс всех мерчей и ошибку
 	GetList(ctx context.Context) ([]*models.Item, error)
 
+	// TODO теперь пробрасываем models.User
 	// Update обновляет информацию по name на основе экземпляра Item, возвращает ошибку
-	Update(ctx context.Context, name string, merch *models.Item) error
+	Update(ctx context.Context, user *models.User, merch *models.Item) error
 
 	// Delete удаляет мерч по name, возвращает ошибку
 	Delete(ctx context.Context, name string) error
-
-	// Buy - покупает мерч и возвращает баланс
-	Buy(ctx context.Context, user *models.User, merchName string, count int) (int, error)
 }

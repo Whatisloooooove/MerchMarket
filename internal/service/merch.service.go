@@ -49,16 +49,16 @@ func (m *MerchService) Buy(ctx context.Context, login, merchName string, count i
 		return -1, err
 	}
 
-	if user.Coins < merch.Price*count {
+	if user.Coins < merch.Price {
 		return -1, models.ErrNotEnoughCoins
 	}
 
-	balance, err := m.MerchStorage.Buy(ctx, user, merchName, count)
+	err = m.MerchStorage.Update(ctx, user, merch)
 	if err != nil {
 		return -1, err
 	}
 
-	return balance, nil
+	return user.Coins, nil
 }
 
 // MerchList - пробрасывает контекст ниже и ждёт слайс мерчей, чтобы вернуть его
