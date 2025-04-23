@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"errors"
-	"merch_service/new_version/internal/models"
-	"merch_service/new_version/internal/service"
+	"merch_service/internal/models"
+	"merch_service/internal/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

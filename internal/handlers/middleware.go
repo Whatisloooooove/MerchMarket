@@ -3,8 +3,8 @@ package handlers
 import (
 	"errors"
 	"log"
-	"merch_service/new_version/configs"
-	"merch_service/new_version/internal/models"
+	"merch_service/configs"
+	"merch_service/internal/models"
 	"net/http"
 	"time"
 

@@ -2,7 +2,7 @@ package storage
 
 import (
 	"context"
-	"merch_service/new_version/internal/models"
+	"merch_service/internal/models"
 )
 
 type Storage interface {

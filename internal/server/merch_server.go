@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 	"log"
-	"merch_service/new_version/configs"
-	"merch_service/new_version/internal/handlers"
+	"merch_service/configs"
+	"merch_service/internal/handlers"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -32,34 +32,34 @@ type MerchServer struct {
 }
 
 func (serv *MerchServer) loadConfig(configPath string) {
-	wd, err := os.Getwd()
+	absPath, err := filepath.Abs(configPath)
 	if err != nil {
-		log.Fatalln("не удалось получить путь до рабочей директорий:", err.Error())
+		log.Fatalln("не удалось определить абсолютный путь:", err.Error())
 	}
 
-	// Поднимаемся в корень директорий и оттуда смотрим на configPath
-	// TODO выглядит криво, что-то придумать!
-	configPath = filepath.Join(filepath.Dir(filepath.Dir(wd)), configPath)
-	config, err := os.ReadFile(configPath)
-
+	config, err := os.ReadFile(absPath)
 	if err != nil {
-		log.Fatalln("ошибка при чтений конфигурационного файла:", err.Error())
+		log.Fatalln("ошибка при чтении конфигурационного файла:", err.Error())
 	}
 
 	sc := configs.ServerConfig{}
-
-	yaml.Unmarshal(config, &sc)
+	if err := yaml.Unmarshal(config, &sc); err != nil {
+		log.Fatalln("ошибка при разборе yaml:", err.Error())
+	}
 
 	serv.config = &sc
 }
 
-func NewMerchServer() *MerchServer {
+func NewMerchServer(u *handlers.UserHandler, t *handlers.TransactionHandler, m *handlers.MerchHandler) *MerchServer {
 	router := gin.Default()
 
 	newServ := MerchServer{
 		http: &http.Server{
 			Handler: router,
 		},
+		uHandler: u,
+		tHandler: t,
+		mHandler: m,
 	}
 
 	newServ.loadConfig("configs/server_config.yml")
