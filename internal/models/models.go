@@ -7,6 +7,7 @@ import "time"
 // (см. handlers.go:TransactionRequest,LoginRequest)
 
 type Item struct {
+	Id   int
 	Name string `json:"name"`
 	// MerchId int    `json:"merch_id"`
 	Price int `json:"price"`
@@ -14,6 +15,7 @@ type Item struct {
 }
 
 type CoinsEntry struct {
+	Id          int
 	Date        time.Time `json:"change_date"`
 	CoinsBefore int       `json:"coins_before"`
 	CoinsAfter  int       `json:"coins_after"`
@@ -27,12 +29,14 @@ type User struct {
 }
 
 type TransactionEntry struct {
+	Id       int
 	Sender   string
 	Reciever string
 	Amount   int
 }
 
 type PurchaseEntry struct {
+	Id       int
 	ItemName string
 	Count    int
 	Date     time.Time

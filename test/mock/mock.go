@@ -58,11 +58,11 @@ func (s *MockUserStorage) Get(ctx context.Context, login string) (*models.User, 
 	return user, nil
 }
 
-func (s *MockUserStorage) Update(ctx context.Context, login string, user *models.User) error {
+func (s *MockUserStorage) Update(ctx context.Context, user *models.User) error {
 	return nil
 }
 
-func (s *MockUserStorage) Delete(ctx context.Context, login string) error {
+func (s *MockUserStorage) Delete(ctx context.Context, user *models.User) error {
 	return nil
 }
 
@@ -133,7 +133,7 @@ func (s *MockMerchStorage) Update(ctx context.Context, user *models.User, merch 
 	if !exists {
 		return models.ErrNoMerchInStock
 	}
-	
+
 	user.Coins -= item.Price * merch.Stock
 	item.Stock -= merch.Stock
 

@@ -15,10 +15,10 @@ type UserStorage interface {
 	Get(ctx context.Context, login string) (*models.User, error)
 
 	// Update обновляет информацию о пользователе по логину на основе экземпляра User, возвращает ошибку
-	Update(ctx context.Context, login string, user *models.User) error
+	Update(ctx context.Context, user *models.User) error
 
 	// Delete удаляет пользователя по его логину. Возвращает ошибку
-	Delete(ctx context.Context, login string) error
+	Delete(ctx context.Context, user *models.User) error
 
 	// GetCoinsHistory - возвращает историю кошелька пользователя
 	GetCoinsHistory(ctx context.Context, user *models.User) ([]models.CoinsEntry, error)

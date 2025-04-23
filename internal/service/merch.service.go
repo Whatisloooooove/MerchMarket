@@ -49,12 +49,17 @@ func (m *MerchService) Buy(ctx context.Context, login, merchName string, count i
 		return -1, err
 	}
 
-	if user.Coins < merch.Price {
+	if user.Coins < merch.Price * count {
 		return -1, models.ErrNotEnoughCoins
 	}
 
+	user.Coins -= merch.Price * count
+	merch.Stock -= count
+
 	err = m.MerchStorage.Update(ctx, user, merch)
 	if err != nil {
+		user.Coins += merch.Price * count
+		merch.Stock += count
 		return -1, err
 	}
 
