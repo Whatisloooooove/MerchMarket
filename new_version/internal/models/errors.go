@@ -32,10 +32,22 @@ var (
 
 // Для MerchStorage
 var (
-	ErrMerchNotFound     = errors.New("такого мерча нет в бд")
-	ErrEmptyMerch        = errors.New("мерч не может быть nill")
-	ErrInvalidMerchID    = errors.New("id мерча не может быть отрицательным")
-	ErrEmptyMerchName    = errors.New("имя мерча не может быть пустым")
-	ErrNegativePrice     = errors.New("цена мерча не может быть отрицательной")
-	ErrNegativeStock     = errors.New("количество мерча не может быть отрицательным")
+	ErrMerchNotFound  = errors.New("такого мерча нет в бд")
+	ErrEmptyMerch     = errors.New("мерч не может быть nill")
+	ErrInvalidMerchID = errors.New("id мерча не может быть отрицательным")
+	ErrEmptyMerchName = errors.New("имя мерча не может быть пустым")
+	ErrNegativePrice  = errors.New("цена мерча не может быть отрицательной")
+	ErrNegativeStock  = errors.New("количество мерча не может быть отрицательным")
+)
+
+// Для TransactionStorage
+var (
+	ErrEmptyTransaction   = errors.New("транзакция не может быть nill")
+	ErrInvalidSenderID    = errors.New("id отправителя не может быть отрицательным")
+	ErrInvalidReceiverID  = errors.New("id получателя не может быть отрицательным")
+	ErrSenderNotFound     = errors.New("такого отправителя нет в бд")
+	ErrReceiverNotFound   = errors.New("такого получателя нет в бд")
+	ErrInvalidAmount      = errors.New("amount транзакции не может быть отрицательным")
+	ErrSameSenderReceiver = errors.New("получатель и отправитель одинаковые")
+	ErrInsufficientCoins  = errors.New("у отправителя не хватает монет для отправки")
 )

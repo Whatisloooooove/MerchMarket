@@ -32,8 +32,8 @@ type LoginRequest struct {
 }
 
 type TransactionEntry struct {
-	Sender   string
-	Reciever string
+	SenderID   int
+	ReceiverID int
 	Amount   int
 }
 
