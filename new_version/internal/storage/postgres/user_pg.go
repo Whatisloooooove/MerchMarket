@@ -31,7 +31,7 @@ func (u *UserPG) validateID(id int) error {
 // validateLogin проверяет валидность логина пользователя.
 func (u *UserPG) validateLogin(login string) error {
 	if login == "" {
-		return models.ErrEmptyLogin
+		return models.ErrEmptyUserLogin
 	}
 	return nil
 }
@@ -42,13 +42,13 @@ func (u *UserPG) validateUser(user *models.User) error {
 		return models.ErrEmptyUser
 	}
 	if user.Login == "" {
-		return models.ErrEmptyLogin
+		return models.ErrEmptyUserLogin
 	}
 	if user.Password == "" {
-		return models.ErrEmptyPassword
+		return models.ErrEmptyUserPassword
 	}
 	if user.Coins < 0 {
-		return models.ErrNegativeCoins
+		return models.ErrNegativeUserCoins
 	}
 	return nil
 }

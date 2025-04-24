@@ -22,10 +22,20 @@ var (
 
 // Для UserStorage
 var (
-	ErrUserNotFound  = errors.New("такого пользователя нет в бд")
-	ErrInvalidUserID = errors.New("id пользователя не может быть отрицательным")
-	ErrEmptyUser     = errors.New("пользователь не может быть nill")
-	ErrEmptyLogin    = errors.New("логин пользователя не может быть пустым")
-	ErrEmptyPassword = errors.New("пароль пользователя не может быть пустым")
-	ErrNegativeCoins = errors.New("количество монет пользователя не может быть отрицательным")
+	ErrUserNotFound      = errors.New("такого пользователя нет в бд")
+	ErrEmptyUser         = errors.New("пользователь не может быть nill")
+	ErrInvalidUserID     = errors.New("id пользователя не может быть отрицательным")
+	ErrEmptyUserLogin    = errors.New("логин пользователя не может быть пустым")
+	ErrEmptyUserPassword = errors.New("пароль пользователя не может быть пустым")
+	ErrNegativeUserCoins = errors.New("количество монет пользователя не может быть отрицательным")
+)
+
+// Для MerchStorage
+var (
+	ErrMerchNotFound     = errors.New("такого мерча нет в бд")
+	ErrEmptyMerch        = errors.New("мерч не может быть nill")
+	ErrInvalidMerchID    = errors.New("id мерча не может быть отрицательным")
+	ErrEmptyMerchName    = errors.New("имя мерча не может быть пустым")
+	ErrNegativePrice     = errors.New("цена мерча не может быть отрицательной")
+	ErrNegativeStock     = errors.New("количество мерча не может быть отрицательным")
 )
