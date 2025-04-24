@@ -6,18 +6,29 @@ import (
 	"merch_service/new_version/internal/models"
 )
 
-// UserStorage определяет контракт для работы с пользователями.
+// UserStorage определяет интерфейс для операций с пользователями в хранилище.
 type UserStorage interface {
-	// Create создает новый экземпляр пользователя в бд на основе экземпляра User
-	// Возвращает ошибку, если создание не удалось
+	// Базовые CRUD операции
+
+	// Create создает нового пользователя в БД.
+	// Возвращает ошибку при неудаче.
 	Create(ctx context.Context, user *models.User) error
 
-	// GetByLogin возвращает пользователя по его логину и ошибку.
-	Get(ctx context.Context, login string) (*models.User, error)
+	// Get возвращает пользователя по ID. Если пользователь не найден,
+	// возвращает nil и ошибку.
+	Get(ctx context.Context, id int) (*models.User, error)
 
-	// Update обновляет информацию о пользователе по логину на основе экземпляра User, возвращает ошибку
-	Update(ctx context.Context, login string, user *models.User) error
+	// Update обновляет данные в БД с id на основе полей экземпляра User.
+	// Возвращает ошибку при неудаче.
+	Update(ctx context.Context, id int, user *models.User) error
 
-	// Delete удаляет пользователя по его логину. Возвращает ошибку
-	Delete(ctx context.Context, login string) error
+	// Delete удаляет пользователя в БД по ID.
+	// Возвращает ошибку при неудаче.
+	Delete(ctx context.Context, id int) error
+
+	// Дополнительные методы
+
+	// Get возвращает пользователя по ID. Если пользователь не найден,
+	// возвращает nil и ошибку.
+	GetByLogin(ctx context.Context, login string) (*models.User, error)
 }
