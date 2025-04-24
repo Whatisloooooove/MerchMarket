@@ -10,7 +10,7 @@ import (
 type UserStorage interface {
 	// Базовые CRUD операции
 
-	// Create создает нового пользователя в БД.
+	// Create создает нового пользователя в БД и обновляет ID у user.
 	// Возвращает ошибку при неудаче.
 	Create(ctx context.Context, user *models.User) error
 
