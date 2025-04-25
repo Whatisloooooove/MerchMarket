@@ -15,7 +15,6 @@ var (
 	ErrWrongPassword = errors.New("неверный пароль")
 	ErrUserExists    = errors.New("пользователь с таким логином уже существует")
 )
-
 //
 // StorageErrorsBlock
 //

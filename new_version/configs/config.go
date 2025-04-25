@@ -1,4 +1,4 @@
-package server
+package configs
 
 type ServerConfig struct {
 	Host          string `yaml:"host"`

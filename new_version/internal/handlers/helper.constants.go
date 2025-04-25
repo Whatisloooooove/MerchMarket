@@ -1,4 +1,4 @@
-package server
+package handlers
 
 const (
 	AuthError           = "отказано в доступе"
@@ -8,6 +8,8 @@ const (
 	WrongPassError      = "неверный пароль" // Нужен ли он вообще (см handlers.go)
 	InternalServerError = "ошибка на сервере"
 	InvalidAppDataError = "неверный формат данных в запросе"
+	NotEnoughMerchError = "недостаточно товара на складе"
+	NotEnoughCoinsError = "недостаточно монет для покупки"
 )
 
 const (
@@ -15,8 +17,10 @@ const (
 	TokensOK       = "токены успешно созданы"
 	RefreshOK      = "токен авторизаций обновлен"
 	MerchListOK    = "список товаров"
-	HistoryOK      = "история кошелька"
+	HistoryCoinsOK = "история кошелька"
+	HistoryPurchOK = "история покупок"
 	TransferOK     = "перевод монет успешен"
+	PurchaseOK     = "покупка успешна"
 )
 
 // Для централизованного контроля за API и для избежания очепяток
@@ -26,4 +30,5 @@ const (
 	data       = "data"
 	token      = "token"
 	refresh    = "refresh"
+	balance    = "balance"
 )

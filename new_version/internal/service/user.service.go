@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"merch_service/new_version/internal/models"
 	"merch_service/new_version/internal/storage"
 )
@@ -39,7 +38,7 @@ func (u *UserService) Login(ctx context.Context, logReq *models.LoginRequest) er
 	}
 
 	if user.Password != logReq.Password {
-		return fmt.Errorf("неверный пароль")
+		return models.ErrWrongPassword
 	}
 
 	return nil
@@ -50,7 +49,7 @@ func (u *UserService) Login(ctx context.Context, logReq *models.LoginRequest) er
 func (u *UserService) Register(ctx context.Context, regReq *models.LoginRequest) error {
 	_, err := u.UserStorage.FindUserByLogin(ctx, regReq.Login)
 	if err == nil {
-		return fmt.Errorf("такой пользователь уже существует")
+		return models.ErrUserExists
 	}
 
 	err = u.UserStorage.CreateUser(ctx, &models.User{Login: regReq.Login, Password: regReq.Password})
