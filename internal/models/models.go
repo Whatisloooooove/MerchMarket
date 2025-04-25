@@ -7,11 +7,10 @@ import "time"
 // (см. handlers.go:TransactionRequest,LoginRequest)
 
 type Item struct {
-	Id   int
-	Name string `json:"name"`
-	// MerchId int    `json:"merch_id"`
-	Price int `json:"price"`
-	Stock int `json:"stock"`
+	Id    int    `json:"id"`
+	Name  string `json:"name"`
+	Price int    `json:"price"`
+	Stock int    `json:"stock"`
 }
 
 type CoinsEntry struct {
@@ -29,10 +28,10 @@ type User struct {
 }
 
 type TransactionEntry struct {
-	Id       int
-	Sender   string
-	Reciever string
-	Amount   int
+	Id         int
+	SenderID   int
+	ReceiverID int
+	Amount     int
 }
 
 type PurchaseEntry struct {

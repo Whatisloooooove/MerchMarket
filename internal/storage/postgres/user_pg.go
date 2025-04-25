@@ -2,79 +2,210 @@ package postgres
 
 import (
 	"context"
-	"merch_service/internal/models"
+	"errors"
+
+	"merch_service/new_version/internal/models"
 
 	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
+// UserPG реализует интерфейс UserStorage в PostgreSQL
 type UserPG struct {
-	conn *pgx.Conn
+	db *pgxpool.Pool
 }
 
-func NewUserStorage(conn *pgx.Conn) *UserPG {
-	return &UserPG{conn: conn}
+// NewUserStorage создает новый экземпляр хранилища пользователей.
+func NewUserStorage(db *pgxpool.Pool) *UserPG {
+	return &UserPG{db: db}
 }
 
-func (s *UserPG) Create(ctx context.Context, user *models.User) error {
-	query := `
-		INSERT INTO merchshop.users (login, password, coins) 
-		VALUES ($1, $2, $3)
-		ON CONFLICT (login) DO NOTHING
-	`
-	tag, err := s.conn.Exec(ctx, query,
-		user.Login, user.Password, user.Coins)
-	if err != nil {
-		return err
-	}
-	if tag.RowsAffected() == 0 {
-		return nil
+// validateID проверяет валидность ID пользователя.
+func (u *UserPG) validateID(id int) error {
+	if id <= 0 {
+		return models.ErrInvalidUserID
 	}
 	return nil
 }
 
-func (s *UserPG) Get(ctx context.Context, login string) (*models.User, error) {
-	query := `
-		SELECT user_id, login, password, coins 
-		FROM merchshop.users 
-		WHERE login = $1
-	`
-	var user models.User
-	err := s.conn.QueryRow(ctx, query, login).Scan(
-		&user.Id, &user.Login, &user.Password, &user.Coins)
-	if err == pgx.ErrNoRows {
-		return nil, nil
+// validateLogin проверяет валидность логина пользователя.
+func (u *UserPG) validateLogin(login string) error {
+	if login == "" {
+		return models.ErrEmptyUserLogin
 	}
+	return nil
+}
+
+// validateUser проверяет валидность данных пользователя.
+func (u *UserPG) validateUser(user *models.User) error {
+	if user == nil {
+		return models.ErrEmptyUser
+	}
+	if user.Login == "" {
+		return models.ErrEmptyUserLogin
+	}
+	if user.Password == "" {
+		return models.ErrEmptyUserPassword
+	}
+	if user.Coins < 0 {
+		return models.ErrNegativeUserCoins
+	}
+	return nil
+}
+
+// Create создает нового пользователя в базе данных.
+// Возвращает ошибку при невалидных данных или проблемах с БД.
+func (u *UserPG) Create(ctx context.Context, user *models.User) error {
+	if err := u.validateUser(user); err != nil {
+		return err
+	}
+
+	query := `
+		INSERT INTO merchshop.users (login, password, coins)
+		VALUES ($1, $2, $3)
+		RETURNING user_id
+	`
+
+	err := u.db.QueryRow(
+		ctx,
+		query,
+		user.Login,
+		user.Password,
+		user.Coins,
+	).Scan(&user.Id)
+
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Get возвращает пользователя по ID. Если пользователь не найден,
+// возвращает nil и ошибку.
+func (u *UserPG) Get(ctx context.Context, id int) (*models.User, error) {
+	if err := u.validateID(id); err != nil {
 		return nil, err
 	}
+
+	query := `
+		SELECT user_id, login, password, coins
+		FROM merchshop.users
+		WHERE user_id = $1
+	`
+
+	var user models.User
+	err := u.db.QueryRow(ctx, query, id).Scan(
+		&user.Id,
+		&user.Login,
+		&user.Password,
+		&user.Coins,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, models.ErrUserNotFound
+		}
+		return nil, err
+	}
+
 	return &user, nil
 }
 
-func (s *UserPG) Update(ctx context.Context, login string, user *models.User) error {
+// Update обновляет данные пользователя. Возвращает ошибку если:
+// - пользователь не найден
+// - данные невалидны
+// - произошла ошибка БД
+func (u *UserPG) Update(ctx context.Context, id int, user *models.User) error {
+	if err := u.validateID(id); err != nil {
+		return err
+	}
+
+	if err := u.validateUser(user); err != nil {
+		return err
+	}
+
 	query := `
-		UPDATE merchshop.users 
-		SET login = $1, password = $2, coins = $3 
-		WHERE login = $4
+		UPDATE merchshop.users
+		SET login = $1, password = $2, coins = $3
+		WHERE user_id = $4
 	`
-	tag, err := s.conn.Exec(ctx, query,
-		user.Login, user.Password, user.Coins, login)
+
+	result, err := u.db.Exec(
+		ctx,
+		query,
+		user.Login,
+		user.Password,
+		user.Coins,
+		id,
+	)
+
 	if err != nil {
 		return err
 	}
-	if tag.RowsAffected() == 0 {
-		return nil
+
+	if result.RowsAffected() == 0 {
+		return models.ErrUserNotFound
 	}
+
 	return nil
 }
 
-func (s *UserPG) Delete(ctx context.Context, login string) error {
-	query := `DELETE FROM merchshop.users WHERE login = $1`
-	tag, err := s.conn.Exec(ctx, query, login)
+// Delete удаляет пользователя по ID. Возвращает ошибку если:
+// - пользователь не найден
+// - ID невалиден
+// - произошла ошибка БД
+func (u *UserPG) Delete(ctx context.Context, id int) error {
+	if err := u.validateID(id); err != nil {
+		return err
+	}
+
+	query := `
+		DELETE FROM merchshop.users
+		WHERE user_id = $1
+	`
+
+	result, err := u.db.Exec(ctx, query, id)
+
 	if err != nil {
 		return err
 	}
-	if tag.RowsAffected() == 0 {
-		return nil
+
+	if result.RowsAffected() == 0 {
+		return models.ErrUserNotFound
 	}
+
 	return nil
 }
+
+// GetByLogin возвращает пользователя по логину. Если пользователь не найден,
+// возвращает nil и ошибку.
+func (u *UserPG) GetByLogin(ctx context.Context, login string) (*models.User, error) {
+	if err := u.validateLogin(login); err != nil {
+		return nil, err
+	}
+
+	query := `
+		SELECT user_id, login, password, coins
+		FROM merchshop.users
+		WHERE login = $1
+	`
+
+	var user models.User
+	err := u.db.QueryRow(ctx, query, login).Scan(
+		&user.Id,
+		&user.Login,
+		&user.Password,
+		&user.Coins,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, models.ErrUserNotFound
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
+>>>>>>> develop:new_version/internal/storage/postgres/user_pg.go
