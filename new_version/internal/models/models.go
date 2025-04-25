@@ -7,8 +7,8 @@ import "time"
 // (см. handlers.go:TransactionRequest,LoginRequest)
 
 type Item struct {
+	Id int    `json:"id"`
 	Name string `json:"name"`
-	// MerchId int    `json:"merch_id"`
 	Price int `json:"price"`
 	Stock int `json:"stock"`
 }
@@ -27,8 +27,8 @@ type User struct {
 }
 
 type TransactionEntry struct {
-	Sender   string
-	Reciever string
+	SenderID   int
+	ReceiverID int
 	Amount   int
 }
 
