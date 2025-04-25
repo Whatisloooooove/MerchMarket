@@ -3,7 +3,8 @@ package postgres
 import (
 	"context"
 	"errors"
-	"merch_service/new_version/internal/models"
+
+	"merch_service/internal/models"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -67,7 +68,6 @@ func (m *MerchPG) Create(ctx context.Context, merch *models.Item) error {
 
 	if err != nil {
 		return err
->>>>>>> develop:new_version/internal/storage/postgres/merch_pg.go
 	}
 
 	return nil
@@ -99,24 +99,11 @@ func (m *MerchPG) Get(ctx context.Context, id int) (*models.Item, error) {
 			return nil, models.ErrMerchNotFound
 		}
 		return nil, err
->>>>>>> develop:new_version/internal/storage/postgres/merch_pg.go
 	}
 
 	return &item, nil
 }
 
-<<<<<<< HEAD:internal/storage/postgres/merch_pg.go
-func (s *merchStorage) GetList(ctx context.Context) ([]*models.Item, error) {
-	query := `
-		SELECT name, price, stock 
-		FROM merchshop.merch
-		ORDER BY name
-	`
-
-	rows, err := s.conn.Query(ctx, query)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query merch list: %w", err)
-=======
 // Update обновляет данные товара. Возвращает ошибку если:
 // - товар не найден
 // - данные невалидны
@@ -195,17 +182,12 @@ func (m *MerchPG) GetList(ctx context.Context) ([]*models.Item, error) {
 	rows, err := m.db.Query(ctx, query)
 	if err != nil {
 		return nil, err
->>>>>>> develop:new_version/internal/storage/postgres/merch_pg.go
 	}
 	defer rows.Close()
 
 	var items []*models.Item
 	for rows.Next() {
 		var item models.Item
-<<<<<<< HEAD:internal/storage/postgres/merch_pg.go
-		if err := rows.Scan(&item.Name, &item.Price, &item.Stock); err != nil {
-			return nil, fmt.Errorf("failed to scan merch item: %w", err)
-=======
 		if err := rows.Scan(
 			&item.Id,
 			&item.Name,
@@ -213,55 +195,13 @@ func (m *MerchPG) GetList(ctx context.Context) ([]*models.Item, error) {
 			&item.Stock,
 		); err != nil {
 			return nil, err
->>>>>>> develop:new_version/internal/storage/postgres/merch_pg.go
 		}
 		items = append(items, &item)
 	}
 
 	if err := rows.Err(); err != nil {
-<<<<<<< HEAD:internal/storage/postgres/merch_pg.go
-		return nil, fmt.Errorf("rows error: %w", err)
-=======
 		return nil, err
->>>>>>> develop:new_version/internal/storage/postgres/merch_pg.go
 	}
 
 	return items, nil
 }
-<<<<<<< HEAD:internal/storage/postgres/merch_pg.go
-
-func (s *merchStorage) Update(ctx context.Context, name string, merch *models.Item) error {
-	query := `
-		UPDATE merchshop.merch 
-		SET name = $1, price = $2, stock = $3 
-		WHERE name = $4
-	`
-
-	tag, err := s.conn.Exec(ctx, query, merch.Name, merch.Price, merch.Stock, name)
-	if err != nil {
-		return fmt.Errorf("failed to update merch: %w", err)
-	}
-
-	if tag.RowsAffected() == 0 {
-		return nil
-	}
-
-	return nil
-}
-
-func (s *merchStorage) Delete(ctx context.Context, name string) error {
-	query := `DELETE FROM merchshop.merch WHERE name = $1`
-
-	tag, err := s.conn.Exec(ctx, query, name)
-	if err != nil {
-		return fmt.Errorf("failed to delete merch: %w", err)
-	}
-
-	if tag.RowsAffected() == 0 {
-		return nil
-	}
-
-	return nil
-}
-=======
->>>>>>> develop:new_version/internal/storage/postgres/merch_pg.go

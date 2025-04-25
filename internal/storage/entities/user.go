@@ -3,7 +3,7 @@ package entities
 import (
 	"context"
 
-	"merch_service/new_version/internal/models"
+	"merch_service/internal/models"
 )
 
 // UserStorage определяет интерфейс для операций с пользователями в хранилище.

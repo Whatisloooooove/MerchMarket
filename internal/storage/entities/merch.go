@@ -3,7 +3,7 @@ package entities
 import (
 	"context"
 
-	"merch_service/new_version/internal/models"
+	"merch_service/internal/models"
 )
 
 // MerchStorage определяет контракт для работы с товарами

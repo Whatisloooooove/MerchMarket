@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"merch_service/new_version/internal/models"
+	"merch_service/internal/models"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -208,4 +208,3 @@ func (u *UserPG) GetByLogin(ctx context.Context, login string) (*models.User, er
 
 	return &user, nil
 }
->>>>>>> develop:new_version/internal/storage/postgres/user_pg.go
