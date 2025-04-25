@@ -3,7 +3,7 @@ package postgres
 import (
 	"context"
 
-	"merch_service/new_version/internal/models"
+	"merch_service/internal/models"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -52,8 +52,8 @@ func (t *TransactionPG) Create(ctx context.Context, tr *models.TransactionEntry)
 
 	// Проверяем существование пользователей
 	var exists bool
-	err = tx.QueryRow(ctx, 
-		"SELECT EXISTS(SELECT 1 FROM merchshop.users WHERE user_id = $1)", 
+	err = tx.QueryRow(ctx,
+		"SELECT EXISTS(SELECT 1 FROM merchshop.users WHERE user_id = $1)",
 		tr.SenderID,
 	).Scan(&exists)
 	if err != nil {
@@ -63,8 +63,8 @@ func (t *TransactionPG) Create(ctx context.Context, tr *models.TransactionEntry)
 		return models.ErrSenderNotFound
 	}
 
-	err = tx.QueryRow(ctx, 
-		"SELECT EXISTS(SELECT 1 FROM merchshop.users WHERE user_id = $1)", 
+	err = tx.QueryRow(ctx,
+		"SELECT EXISTS(SELECT 1 FROM merchshop.users WHERE user_id = $1)",
 		tr.ReceiverID,
 	).Scan(&exists)
 	if err != nil {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"merch_service/new_version/internal/models"
+	"merch_service/internal/models"
 )
 
 // UserMock - моковая реализация UserStorage

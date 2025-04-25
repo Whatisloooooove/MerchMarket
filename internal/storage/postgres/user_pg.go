@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"merch_service/new_version/internal/models"
+	"merch_service/internal/models"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -116,8 +116,8 @@ func (u *UserPG) Get(ctx context.Context, id int) (*models.User, error) {
 // - пользователь не найден
 // - данные невалидны
 // - произошла ошибка БД
-func (u *UserPG) Update(ctx context.Context, id int, user *models.User) error {
-	if err := u.validateID(id); err != nil {
+func (u *UserPG) Update(ctx context.Context, user *models.User) error {
+	if err := u.validateID(user.Id); err != nil {
 		return err
 	}
 
@@ -137,7 +137,7 @@ func (u *UserPG) Update(ctx context.Context, id int, user *models.User) error {
 		user.Login,
 		user.Password,
 		user.Coins,
-		id,
+		user.Id,
 	)
 
 	if err != nil {
@@ -208,4 +208,3 @@ func (u *UserPG) GetByLogin(ctx context.Context, login string) (*models.User, er
 
 	return &user, nil
 }
->>>>>>> develop:new_version/internal/storage/postgres/user_pg.go

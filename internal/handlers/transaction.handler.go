@@ -34,9 +34,9 @@ func (th *TransactionHandler) TransferHandler(c *gin.Context) {
 	}
 
 	info := c.Keys["claims"].(jwt.MapClaims)
-	sender := info["log"].(string)
+	sender := info["id"].(int)
 
-	err := th.tServ.Send(c, sender, req.Reciever, req.Amount)
+	err := th.tServ.Send(c, sender, req.RecieverId, req.Amount)
 
 	switch {
 	case errors.Is(err, models.ErrNotEnoughCoins):

@@ -3,24 +3,24 @@ package service
 import (
 	"context"
 	"merch_service/internal/models"
-	"merch_service/internal/storage/entites"
+	"merch_service/internal/storage/entities"
 )
 
 type TransactionServiceInterface interface {
 	// Send - отправляет amount монет от sender к recv
-	Send(ctx context.Context, sender, recv string, amount int) error
+	Send(ctx context.Context, senderId, recvId, amount int) error
 }
 
 var _ TransactionServiceInterface = (*TransactionService)(nil)
 
 // TransactionService - реализует интерфейс TransactionServiceInterface
 type TransactionService struct {
-	TransactionStorage entites.TransactionStorage
-	UserStorage        entites.UserStorage
+	TransactionStorage entities.TransactionStorage
+	UserStorage        entities.UserStorage
 }
 
 // NewTransactionService - создает объект TransactionService
-func NewTransactionService(t entites.TransactionStorage, u entites.UserStorage) *TransactionService {
+func NewTransactionService(t entities.TransactionStorage, u entities.UserStorage) *TransactionService {
 	return &TransactionService{
 		TransactionStorage: t,
 		UserStorage:        u,
@@ -30,13 +30,13 @@ func NewTransactionService(t entites.TransactionStorage, u entites.UserStorage) 
 // Send - проверяет есть ли оба переданных пользователя,
 // хватает ли денег отправителю для совершения операции,
 // и совершает операцию отправки
-func (t *TransactionService) Send(ctx context.Context, sender, recv string, amount int) error {
-	sendUser, err := t.UserStorage.Get(ctx, sender)
+func (t *TransactionService) Send(ctx context.Context, senderId, recvId, amount int) error {
+	sendUser, err := t.UserStorage.Get(ctx, senderId)
 	if err != nil {
 		return err
 	}
 
-	recvUser, err := t.UserStorage.Get(ctx, recv)
+	recvUser, err := t.UserStorage.Get(ctx, recvId)
 	if err != nil {
 		return err
 	}

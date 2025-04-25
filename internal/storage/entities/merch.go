@@ -3,7 +3,7 @@ package entities
 import (
 	"context"
 
-	"merch_service/new_version/internal/models"
+	"merch_service/internal/models"
 )
 
 // MerchStorage определяет контракт для работы с товарами
@@ -18,10 +18,10 @@ type MerchStorage interface {
 	// Get возвращает мерч по ID. Если мерч не найден,
 	// возвращает nil и ошибку.
 	Get(ctx context.Context, id int) (*models.Item, error)
-
-	// Update обновляет данные в БД с id на основе полей экземпляра Item.
+	
+	// Update обновляет данные в БД на основе полей экземпляра Item.
 	// Возвращает ошибку при неудаче.
-	Update(ctx context.Context, id int, merch *models.Item) error
+	Update(ctx context.Context, merch *models.Item) error
 
 	// Delete удаляет мерч в БД по ID.
 	// Возвращает ошибку при неудаче.

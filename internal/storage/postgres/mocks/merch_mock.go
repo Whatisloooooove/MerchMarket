@@ -3,7 +3,7 @@ package mocks
 import (
 	"context"
 	"errors"
-	"your_project/models"
+	"merch_service/internal/models"
 )
 
 // Структура мока TODO
