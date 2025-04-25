@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"merch_service/new_version/internal/models"
-	"merch_service/new_version/internal/storage"
+	"merch_service/internal/models"
+	"merch_service/internal/storage/entites"
 )
 
 type MerchServiceInterface interface {
@@ -13,21 +13,29 @@ type MerchServiceInterface interface {
 	Buy(ctx context.Context, login, merchName string, count int) (int, error)
 
 	// MerchList - возвращает весь доступный для покупки мерч
-	MerchList(ctx context.Context) ([]models.Item, error)
+	MerchList(ctx context.Context) ([]*models.Item, error)
 }
 
 var _ MerchServiceInterface = (*MerchService)(nil)
 
 // MerchService - реализует интерфейс MerchServiceInterface
 type MerchService struct {
-	MerchStorage storage.Storage
+	MerchStorage entites.MerchStorage
+	UserStorage  entites.UserStorage
+}
+
+// NewMerchService - создает объект MerchService
+func NewMerchService(m entites.MerchStorage) *MerchService {
+	return &MerchService{
+		MerchStorage: m,
+	}
 }
 
 // Buy - проверяет наличие мерча и возможность пользователя купить мерч и
 //
 //	далее совершает покупку мерча
 func (m *MerchService) Buy(ctx context.Context, login, merchName string, count int) (int, error) {
-	merch, err := m.MerchStorage.MerchByName(ctx, merchName)
+	merch, err := m.MerchStorage.Get(ctx, merchName)
 	if err != nil {
 		return -1, err
 	}
@@ -36,24 +44,29 @@ func (m *MerchService) Buy(ctx context.Context, login, merchName string, count i
 		return -1, models.ErrNotEnoughMerch
 	}
 
-	user, err := m.MerchStorage.FindUserByLogin(ctx, login)
+	user, err := m.UserStorage.Get(ctx, login)
 	if err != nil {
 		return -1, err
 	}
 
-	if user.Coins < merch.Price*count {
+	if user.Coins < merch.Price * count {
 		return -1, models.ErrNotEnoughCoins
 	}
 
-	balance, err := m.MerchStorage.Buy(ctx, user, merchName, count)
+	user.Coins -= merch.Price * count
+	merch.Stock -= count
+
+	err = m.MerchStorage.Update(ctx, user, merch)
 	if err != nil {
+		user.Coins += merch.Price * count
+		merch.Stock += count
 		return -1, err
 	}
 
-	return balance, nil
+	return user.Coins, nil
 }
 
 // MerchList - пробрасывает контекст ниже и ждёт слайс мерчей, чтобы вернуть его
-func (m *MerchService) MerchList(ctx context.Context) ([]models.Item, error) {
-	return m.MerchStorage.MerchList(ctx)
+func (m *MerchService) MerchList(ctx context.Context) ([]*models.Item, error) {
+	return m.MerchStorage.GetList(ctx)
 }

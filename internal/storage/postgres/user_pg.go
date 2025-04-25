@@ -208,3 +208,4 @@ func (u *UserPG) GetByLogin(ctx context.Context, login string) (*models.User, er
 
 	return &user, nil
 }
+>>>>>>> develop:new_version/internal/storage/postgres/user_pg.go
