@@ -4,15 +4,17 @@ import (
 	"merch_service/internal/handlers"
 	"merch_service/internal/server"
 	"merch_service/internal/service"
-	"merch_service/test/mock"
+	"merch_service/internal/storage"
+	"merch_service/internal/storage/postgres"
 )
 
 func main() {
+	db := storage.InitDB()
 
 	// Инициализация базы данных (Storage interface) (можно заменить на свои моки)
-	userStorage := mock.NewMockUserStorage()
-	merchStorage := mock.NewMockMerchStorage()
-	transactionStorage := mock.NewMockTransactionStorage()
+	userStorage := postgres.NewUserStorage(db)
+	merchStorage := postgres.NewMerchStorage(db)
+	transactionStorage := postgres.NewTransactionStorage(db)
 
 	// Инициализация сервисов
 	userService := service.NewUserService(userStorage)

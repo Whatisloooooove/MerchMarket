@@ -4,9 +4,12 @@ import (
 	"context"
 
 	"merch_service/internal/models"
+	"merch_service/internal/storage/entities"
 
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+var _ entities.TransactionStorage = (*TransactionPG)(nil)
 
 // TransactionPG реализует интерфейс TransactionStorage в PostgreSQL
 type TransactionPG struct {
@@ -19,28 +22,28 @@ func NewTransactionStorage(db *pgxpool.Pool) *TransactionPG {
 }
 
 // validateTransaction проверяет валидность данных транзакции
-func (t *TransactionPG) validateTransaction(tr *models.TransactionEntry) error {
-	if tr == nil {
+func (t *TransactionPG) validateTransaction(send *models.User, recv *models.User, amount int) error {
+	if send == nil || recv == nil {
 		return models.ErrEmptyTransaction
 	}
-	if tr.SenderID <= 0 {
+	if send.Id <= 0 {
 		return models.ErrInvalidSenderID
 	}
-	if tr.ReceiverID <= 0 {
+	if recv.Id <= 0 {
 		return models.ErrInvalidReceiverID
 	}
-	if tr.Amount <= 0 {
+	if amount <= 0 {
 		return models.ErrInvalidAmount
 	}
-	if tr.SenderID == tr.ReceiverID {
+	if send.Id == recv.Id {
 		return models.ErrSameSenderReceiver
 	}
 	return nil
 }
 
 // Create создает новую транзакцию между пользователями
-func (t *TransactionPG) Create(ctx context.Context, tr *models.TransactionEntry) error {
-	if err := t.validateTransaction(tr); err != nil {
+func (t *TransactionPG) Create(ctx context.Context, send *models.User, recv *models.User, amount int) error {
+	if err := t.validateTransaction(send, recv, amount); err != nil {
 		return err
 	}
 
@@ -54,7 +57,7 @@ func (t *TransactionPG) Create(ctx context.Context, tr *models.TransactionEntry)
 	var exists bool
 	err = tx.QueryRow(ctx,
 		"SELECT EXISTS(SELECT 1 FROM merchshop.users WHERE user_id = $1)",
-		tr.SenderID,
+		send.Id,
 	).Scan(&exists)
 	if err != nil {
 		return err
@@ -65,7 +68,7 @@ func (t *TransactionPG) Create(ctx context.Context, tr *models.TransactionEntry)
 
 	err = tx.QueryRow(ctx,
 		"SELECT EXISTS(SELECT 1 FROM merchshop.users WHERE user_id = $1)",
-		tr.ReceiverID,
+		recv.Id,
 	).Scan(&exists)
 	if err != nil {
 		return err
@@ -78,20 +81,20 @@ func (t *TransactionPG) Create(ctx context.Context, tr *models.TransactionEntry)
 	var senderCoins int
 	err = tx.QueryRow(ctx,
 		"SELECT coins FROM merchshop.users WHERE user_id = $1 FOR UPDATE",
-		tr.SenderID,
+		send.Id,
 	).Scan(&senderCoins)
 	if err != nil {
 		return err
 	}
 
-	if senderCoins < tr.Amount {
+	if senderCoins < amount {
 		return models.ErrInsufficientCoins
 	}
 
 	// Выполняем перевод
 	_, err = tx.Exec(ctx,
 		"UPDATE merchshop.users SET coins = coins - $1 WHERE user_id = $2",
-		tr.Amount, tr.SenderID,
+		amount, send.Id,
 	)
 	if err != nil {
 		return err
@@ -99,7 +102,7 @@ func (t *TransactionPG) Create(ctx context.Context, tr *models.TransactionEntry)
 
 	_, err = tx.Exec(ctx,
 		"UPDATE merchshop.users SET coins = coins + $1 WHERE user_id = $2",
-		tr.Amount, tr.ReceiverID,
+		amount, recv.Id,
 	)
 	if err != nil {
 		return err
@@ -110,7 +113,7 @@ func (t *TransactionPG) Create(ctx context.Context, tr *models.TransactionEntry)
 		`INSERT INTO merchshop.transactions 
 		(sender_id, receiver_id, amount)
 		VALUES ($1, $2, $3)`,
-		tr.SenderID, tr.ReceiverID, tr.Amount,
+		send.Id, recv.Id, amount,
 	)
 	if err != nil {
 		return err
@@ -121,7 +124,7 @@ func (t *TransactionPG) Create(ctx context.Context, tr *models.TransactionEntry)
 		`INSERT INTO merchshop.coinhistory 
 		(user_id, coins_before, coins_after)
 		VALUES ($1, $2, $3)`,
-		tr.SenderID, senderCoins, senderCoins-tr.Amount,
+		send.Id, senderCoins, senderCoins-amount,
 	)
 	if err != nil {
 		return err
@@ -131,7 +134,7 @@ func (t *TransactionPG) Create(ctx context.Context, tr *models.TransactionEntry)
 	var receiverCoins int
 	err = tx.QueryRow(ctx,
 		"SELECT coins FROM merchshop.users WHERE user_id = $1",
-		tr.ReceiverID,
+		recv.Id,
 	).Scan(&receiverCoins)
 	if err != nil {
 		return err
@@ -141,7 +144,7 @@ func (t *TransactionPG) Create(ctx context.Context, tr *models.TransactionEntry)
 		`INSERT INTO merchshop.coinhistory 
 		(user_id, coins_before, coins_after)
 		VALUES ($1, $2, $3)`,
-		tr.ReceiverID, receiverCoins, receiverCoins+tr.Amount,
+		recv.Id, receiverCoins, receiverCoins+amount,
 	)
 	if err != nil {
 		return err

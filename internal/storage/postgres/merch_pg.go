@@ -5,10 +5,13 @@ import (
 	"errors"
 
 	"merch_service/internal/models"
+	"merch_service/internal/storage/entities"
 
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+var _ entities.MerchStorage = (*MerchPG)(nil)
 
 // MerchPG реализует интерфейс MerchStorage в PostgreSQL
 type MerchPG struct {

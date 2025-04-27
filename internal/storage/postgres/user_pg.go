@@ -5,10 +5,13 @@ import (
 	"errors"
 
 	"merch_service/internal/models"
+	"merch_service/internal/storage/entities"
 
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+var _ entities.UserStorage = (*UserPG)(nil)
 
 // UserPG реализует интерфейс UserStorage в PostgreSQL
 type UserPG struct {
@@ -207,4 +210,14 @@ func (u *UserPG) GetByLogin(ctx context.Context, login string) (*models.User, er
 	}
 
 	return &user, nil
+}
+
+func (u *UserPG) GetCoinsHistory(ctx context.Context, userId int) ([]models.CoinsEntry, error) {
+	// TODO
+	return nil, nil
+}
+
+func (u *UserPG) GetPurchaseHistory(ctx context.Context, userId int) ([]models.PurchaseEntry, error) {
+	// TODO
+	return nil, nil
 }

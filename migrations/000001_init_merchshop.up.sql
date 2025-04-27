@@ -4,9 +4,8 @@ CREATE SCHEMA IF NOT EXISTS merchshop;
 -- Таблица пользователей
 CREATE TABLE IF NOT EXISTS merchshop.users (
     user_id SERIAL PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
+    login VARCHAR(100) NOT NULL,
+    password VARCHAR(100) NOT NULL,
     coins INTEGER NOT NULL DEFAULT 1000 CHECK (coins >= 0)
 );
 
