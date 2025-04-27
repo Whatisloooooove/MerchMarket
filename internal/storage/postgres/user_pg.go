@@ -64,8 +64,8 @@ func (u *UserPG) Create(ctx context.Context, user *models.User) error {
 	}
 
 	query := `
-		INSERT INTO merchshop.users (login, password, coins)
-		VALUES ($1, $2, $3)
+		INSERT INTO merchshop.users (login, password)
+		VALUES ($1, $2)
 		RETURNING user_id
 	`
 
@@ -74,7 +74,6 @@ func (u *UserPG) Create(ctx context.Context, user *models.User) error {
 		query,
 		user.Login,
 		user.Password,
-		user.Coins,
 	).Scan(&user.Id)
 
 	if err != nil {
