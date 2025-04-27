@@ -91,8 +91,13 @@ func runMigrations(dbconf *DBConfig) error {
 		RawQuery: "sslmode=disable",
 	}
 
+	migrationsAbsPath, err := filepath.Abs("../../migrations")
+	if err != nil {
+		log.Fatalln("не удалось определить абсолютный путь миграций:", err.Error())
+	}
+
 	m, err := migrate.New(
-		"file://migrations",
+		fmt.Sprintf("file://%s", migrationsAbsPath),
 		dbURL.String(),
 	)
 	if err != nil {
