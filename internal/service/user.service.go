@@ -16,10 +16,10 @@ type UserServiceInterface interface {
 	Register(ctx context.Context, regReq *models.LoginRequest) error
 
 	// CoinsHistory - возвращает историю изменения баланса пользователя
-	CoinsHistory(ctx context.Context, userId int) ([]models.CoinsEntry, error)
+	CoinsHistory(ctx context.Context, userLogin string) ([]models.CoinsEntry, error)
 
 	// PurchaseHistory - возвращает историю покупок
-	PurchaseHistory(ctx context.Context, userId int) ([]models.PurchaseEntry, error)
+	PurchaseHistory(ctx context.Context, userLogin string) ([]models.PurchaseEntry, error)
 }
 
 var _ UserServiceInterface = (*UserService)(nil)
@@ -68,13 +68,13 @@ func (u *UserService) Register(ctx context.Context, regReq *models.LoginRequest)
 
 // CoinsHistory - проверяет существует ли переданный пользователь
 // и возвращает слайс с историей изменения баланса
-func (u *UserService) CoinsHistory(ctx context.Context, userId int) ([]models.CoinsEntry, error) {
-	user, err := u.UserStorage.Get(ctx, userId)
+func (u *UserService) CoinsHistory(ctx context.Context, userLogin string) ([]models.CoinsEntry, error) {
+	_, err := u.UserStorage.GetByLogin(ctx, userLogin)
 	if err != nil {
 		return nil, err
 	}
 
-	coinsHistory, err := u.UserStorage.GetCoinsHistory(ctx, user.Id)
+	coinsHistory, err := u.UserStorage.GetCoinsHistory(ctx, userLogin)
 	if err != nil {
 		return nil, err
 	}
@@ -83,13 +83,13 @@ func (u *UserService) CoinsHistory(ctx context.Context, userId int) ([]models.Co
 
 // PurchaseHistory - проверяет существует ли переданный пользователь
 // и возвращает слайс с историей покупок мерча
-func (u *UserService) PurchaseHistory(ctx context.Context, userId int) ([]models.PurchaseEntry, error) {
-	user, err := u.UserStorage.Get(ctx, userId)
+func (u *UserService) PurchaseHistory(ctx context.Context, userLogin string) ([]models.PurchaseEntry, error) {
+	_, err := u.UserStorage.GetByLogin(ctx, userLogin)
 	if err != nil {
 		return nil, err
 	}
 
-	purchaseHistory, err := u.UserStorage.GetPurchaseHistory(ctx, user.Id)
+	purchaseHistory, err := u.UserStorage.GetPurchaseHistory(ctx, userLogin)
 	if err != nil {
 		return nil, err
 	}

@@ -34,8 +34,8 @@ type UserStorage interface {
 	GetByLogin(ctx context.Context, login string) (*models.User, error)
 
 	// GetCoinsHistory - возвращает историю кошелька пользователя
-	GetCoinsHistory(ctx context.Context, userId int) ([]models.CoinsEntry, error)
+	GetCoinsHistory(ctx context.Context, userLogin string) ([]models.CoinsEntry, error)
 
 	// GetPurchaseHistory - возвращает историю покупок
-	GetPurchaseHistory(ctx context.Context, userId int) ([]models.PurchaseEntry, error)
+	GetPurchaseHistory(ctx context.Context, userLogin string) ([]models.PurchaseEntry, error)
 }

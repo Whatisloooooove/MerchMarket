@@ -107,6 +107,33 @@ func (m *MerchPG) Get(ctx context.Context, id int) (*models.Item, error) {
 	return &item, nil
 }
 
+// Get возвращает мерч по name. Если мерч не найден,
+// возвращает nil и ошибку.
+func (m *MerchPG) GetByName(ctx context.Context, merchName string) (*models.Item, error) {
+	query := `
+		SELECT merch_id, name, price, stock
+		FROM merchshop.merch
+		WHERE name = $1
+	`
+
+	var item models.Item
+	err := m.db.QueryRow(ctx, query, merchName).Scan(
+		&item.Id,
+		&item.Name,
+		&item.Price,
+		&item.Stock,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, models.ErrMerchNotFound
+		}
+		return nil, err
+	}
+
+	return &item, nil
+}
+
 // Update обновляет данные товара. Возвращает ошибку если:
 // - товар не найден
 // - данные невалидны

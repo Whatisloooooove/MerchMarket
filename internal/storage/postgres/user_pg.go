@@ -211,19 +211,15 @@ func (u *UserPG) GetByLogin(ctx context.Context, login string) (*models.User, er
 	return &user, nil
 }
 
-func (u *UserPG) GetCoinsHistory(ctx context.Context, userId int) ([]models.CoinsEntry, error) {
-	if err := u.validateID(userId); err != nil {
-		return nil, err
-	}
-
+func (u *UserPG) GetCoinsHistory(ctx context.Context, userLogin string) ([]models.CoinsEntry, error) {
 	query := `
         SELECT change_id, change_date, coins_before, coins_after
         FROM merchshop.coinhistory
-        WHERE user_id = $1
+        WHERE login = $1
         ORDER BY change_date DESC
     `
 
-	rows, err := u.db.Query(ctx, query, userId)
+	rows, err := u.db.Query(ctx, query, userLogin)
 	if err != nil {
 		return nil, err
 	}
@@ -250,20 +246,17 @@ func (u *UserPG) GetCoinsHistory(ctx context.Context, userId int) ([]models.Coin
 	return history, nil
 }
 
-func (u *UserPG) GetPurchaseHistory(ctx context.Context, userId int) ([]models.PurchaseEntry, error) {
-	if err := u.validateID(userId); err != nil {
-		return nil, err
-	}
+func (u *UserPG) GetPurchaseHistory(ctx context.Context, userLogin string) ([]models.PurchaseEntry, error) {
 
 	query := `
         SELECT p.purchase_id, m.name, p.count, p.purchase_date
         FROM merchshop.purchases p
         JOIN merchshop.merch m ON p.merch_id = m.merch_id
-        WHERE p.user_id = $1
+        WHERE p.login = $1
         ORDER BY p.purchase_date DESC
     `
 
-	rows, err := u.db.Query(ctx, query, userId)
+	rows, err := u.db.Query(ctx, query, userLogin)
 	if err != nil {
 		return nil, err
 	}

@@ -91,7 +91,7 @@ func runMigrations(dbconf *DBConfig) error {
 		RawQuery: "sslmode=disable",
 	}
 
-	migrationsAbsPath, err := filepath.Abs("../../migrations")
+	migrationsAbsPath, err := filepath.Abs("migrations")
 	if err != nil {
 		log.Fatalln("не удалось определить абсолютный путь миграций:", err.Error())
 	}
@@ -113,7 +113,7 @@ func runMigrations(dbconf *DBConfig) error {
 }
 
 func InitDB() *pgxpool.Pool {
-	dbconf := loadConfig("../../configs/database_config.yml")
+	dbconf := loadConfig("configs/database_config.yml")
 	log.Printf("DB Config: %+v", dbconf)
 	if err := createDb(dbconf); err != nil {
 		log.Fatalln("не удалось подключиться к базе данных:", err)

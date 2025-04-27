@@ -10,7 +10,7 @@ type MerchServiceInterface interface {
 	// Buy проверяет есть ли мерч в наличии и хватает
 	// ли денег пользователю, после чего сохраняет данные
 	// и возвращает текущий баланс
-	Buy(ctx context.Context, userId, merchId int, count int) (int, error)
+	Buy(ctx context.Context, userName, merchName string, count int) (int, error)
 
 	// MerchList - возвращает весь доступный для покупки мерч
 	MerchList(ctx context.Context) ([]*models.Item, error)
@@ -35,8 +35,8 @@ func NewMerchService(m entities.MerchStorage, u entities.UserStorage) *MerchServ
 // Buy - проверяет наличие мерча и возможность пользователя купить мерч и
 //
 //	далее совершает покупку мерча
-func (m *MerchService) Buy(ctx context.Context, userId, mercID int, count int) (int, error) {
-	merch, err := m.MerchStorage.Get(ctx, mercID)
+func (m *MerchService) Buy(ctx context.Context, userName, merchName string, count int) (int, error) {
+	merch, err := m.MerchStorage.GetByName(ctx, merchName)
 	if err != nil {
 		return -1, err
 	}
@@ -45,7 +45,7 @@ func (m *MerchService) Buy(ctx context.Context, userId, mercID int, count int) (
 		return -1, models.ErrNotEnoughMerch
 	}
 
-	user, err := m.UserStorage.Get(ctx, userId)
+	user, err := m.UserStorage.GetByLogin(ctx, userName)
 	if err != nil {
 		return -1, err
 	}

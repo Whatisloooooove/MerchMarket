@@ -64,7 +64,7 @@ func NewMerchServer(u *handlers.UserHandler, t *handlers.TransactionHandler, m *
 		mHandler: m,
 	}
 
-	newServ.loadConfig("../../configs/server_config.yml")
+	newServ.loadConfig("configs/server_config.yml")
 
 	return &newServ
 }

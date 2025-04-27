@@ -8,7 +8,7 @@ import (
 
 type TransactionServiceInterface interface {
 	// Send - отправляет amount монет от sender к recv
-	Send(ctx context.Context, senderId, recvId, amount int) error
+	Send(ctx context.Context, sender, recv string, amount int) error
 }
 
 var _ TransactionServiceInterface = (*TransactionService)(nil)
@@ -30,13 +30,13 @@ func NewTransactionService(t entities.TransactionStorage, u entities.UserStorage
 // Send - проверяет есть ли оба переданных пользователя,
 // хватает ли денег отправителю для совершения операции,
 // и совершает операцию отправки
-func (t *TransactionService) Send(ctx context.Context, senderId, recvId, amount int) error {
-	sendUser, err := t.UserStorage.Get(ctx, senderId)
+func (t *TransactionService) Send(ctx context.Context, sender, recv string, amount int) error {
+	sendUser, err := t.UserStorage.GetByLogin(ctx, sender)
 	if err != nil {
 		return err
 	}
 
-	recvUser, err := t.UserStorage.Get(ctx, recvId)
+	recvUser, err := t.UserStorage.GetByLogin(ctx, sender)
 	if err != nil {
 		return err
 	}

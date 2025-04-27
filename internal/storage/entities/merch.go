@@ -18,7 +18,11 @@ type MerchStorage interface {
 	// Get возвращает мерч по ID. Если мерч не найден,
 	// возвращает nil и ошибку.
 	Get(ctx context.Context, id int) (*models.Item, error)
-	
+
+	// Get возвращает мерч по name. Если мерч не найден,
+	// возвращает nil и ошибку.
+	GetByName(ctx context.Context, merchName string) (*models.Item, error)
+
 	// Update обновляет данные в БД на основе полей экземпляра Item.
 	// Возвращает ошибку при неудаче.
 	Update(ctx context.Context, merch *models.Item) error
