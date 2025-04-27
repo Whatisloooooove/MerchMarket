@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"merch_service/configs"
 	"merch_service/internal/handlers"
@@ -37,6 +38,7 @@ func (serv *MerchServer) loadConfig(configPath string) {
 		log.Fatalln("не удалось определить абсолютный путь:", err.Error())
 	}
 
+	fmt.Println(absPath)
 	config, err := os.ReadFile(absPath)
 	if err != nil {
 		log.Fatalln("ошибка при чтении конфигурационного файла:", err.Error())
@@ -62,7 +64,7 @@ func NewMerchServer(u *handlers.UserHandler, t *handlers.TransactionHandler, m *
 		mHandler: m,
 	}
 
-	newServ.loadConfig("configs/server_config.yml")
+	newServ.loadConfig("../../configs/server_config.yml")
 
 	return &newServ
 }
