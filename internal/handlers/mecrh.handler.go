@@ -53,9 +53,9 @@ func (mh *MerchHandler) BuyMerchHandler(c *gin.Context) {
 	// При аутентификации (см middleware)
 	// логин пользователя записывается в gin.Context
 	info := c.Keys["claims"].(jwt.MapClaims)
-	userId := info["id"].(int)
+	login := info["log"].(string)
 
-	coins, err := mh.mServ.Buy(c, userId, req.ItemId, req.Count)
+	coins, err := mh.mServ.Buy(c, login, req.Item, req.Count)
 
 	switch {
 	case errors.Is(err, models.ErrNotEnoughMerch):
