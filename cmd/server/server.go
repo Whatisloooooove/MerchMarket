@@ -18,7 +18,7 @@ func main() {
 
 	// Инициализация сервисов
 	userService := service.NewUserService(userStorage)
-	merchService := service.NewMerchService(merchStorage)
+	merchService := service.NewMerchService(merchStorage, userStorage)
 	transactionService := service.NewTransactionService(transactionStorage, userStorage)
 
 	// Инициализация хендлеров

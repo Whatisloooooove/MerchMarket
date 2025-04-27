@@ -25,9 +25,10 @@ type MerchService struct {
 }
 
 // NewMerchService - создает объект MerchService
-func NewMerchService(m entities.MerchStorage) *MerchService {
+func NewMerchService(m entities.MerchStorage, u entities.UserStorage) *MerchService {
 	return &MerchService{
 		MerchStorage: m,
+		UserStorage:  u,
 	}
 }
 

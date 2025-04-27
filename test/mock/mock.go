@@ -36,16 +36,33 @@ func (s *MockUserStorage) Create(ctx context.Context, user *models.User) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	if user.Id == 0 {
+		user.Id = len(s.users) + 1
+	}
+
 	if _, exists := s.users[user.Id]; exists {
 		return models.ErrUserExists
 	}
 
 	s.users[user.Id] = user
+	s.userId[user.Login] = user.Id
 	s.coins[user.Id] = []models.CoinsEntry{{
 		Date:        time.Now(),
 		CoinsBefore: 0,
 		CoinsAfter:  1000,
 	}}
+	return nil
+}
+
+func (s *MockUserStorage) Update(ctx context.Context, user *models.User) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, exists := s.users[user.Id]; !exists {
+		return models.ErrUserNotFound
+	}
+
+	s.users[user.Id] = user
 	return nil
 }
 
@@ -73,10 +90,6 @@ func (s *MockUserStorage) GetByLogin(ctx context.Context, login string) (*models
 		return nil, models.ErrUserExists
 	}
 	return user, nil
-}
-
-func (s *MockUserStorage) Update(ctx context.Context, user *models.User) error {
-	return nil
 }
 
 func (s *MockUserStorage) Delete(ctx context.Context, id int) error {

@@ -213,11 +213,80 @@ func (u *UserPG) GetByLogin(ctx context.Context, login string) (*models.User, er
 }
 
 func (u *UserPG) GetCoinsHistory(ctx context.Context, userId int) ([]models.CoinsEntry, error) {
-	// TODO
-	return nil, nil
+	if err := u.validateID(userId); err != nil {
+		return nil, err
+	}
+
+	query := `
+        SELECT change_id, change_date, coins_before, coins_after
+        FROM merchshop.coinhistory
+        WHERE user_id = $1
+        ORDER BY change_date DESC
+    `
+
+	rows, err := u.db.Query(ctx, query, userId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var history []models.CoinsEntry
+	for rows.Next() {
+		var entry models.CoinsEntry
+		if err := rows.Scan(
+			&entry.Id,
+			&entry.Date,
+			&entry.CoinsBefore,
+			&entry.CoinsAfter,
+		); err != nil {
+			return nil, err
+		}
+		history = append(history, entry)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return history, nil
 }
 
 func (u *UserPG) GetPurchaseHistory(ctx context.Context, userId int) ([]models.PurchaseEntry, error) {
-	// TODO
-	return nil, nil
+	if err := u.validateID(userId); err != nil {
+		return nil, err
+	}
+
+	query := `
+        SELECT p.purchase_id, m.name, p.count, p.purchase_date
+        FROM merchshop.purchases p
+        JOIN merchshop.merch m ON p.merch_id = m.merch_id
+        WHERE p.user_id = $1
+        ORDER BY p.purchase_date DESC
+    `
+
+	rows, err := u.db.Query(ctx, query, userId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var history []models.PurchaseEntry
+	for rows.Next() {
+		var entry models.PurchaseEntry
+		if err := rows.Scan(
+			&entry.Id,
+			&entry.ItemName,
+			&entry.Count,
+			&entry.Date,
+		); err != nil {
+			return nil, err
+		}
+		history = append(history, entry)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return history, nil
 }
