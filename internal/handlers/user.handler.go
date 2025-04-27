@@ -28,9 +28,9 @@ func (uh *UserHandler) CoinsHistoryHandler(c *gin.Context) {
 	response := DefaultResponse()
 
 	info := c.Keys["claims"].(jwt.MapClaims)
-	userId := info["id"].(int)
+	login := info["log"].(string)
 
-	coinsHist, err := uh.uServ.CoinsHistory(c, userId)
+	coinsHist, err := uh.uServ.CoinsHistory(c, login)
 
 	if err != nil {
 		c.JSON(http.StatusOK, response)
@@ -49,9 +49,9 @@ func (uh *UserHandler) PurchaseHistoryHandler(c *gin.Context) {
 	response := DefaultResponse()
 
 	info := c.Keys["claims"].(jwt.MapClaims)
-	userId := info["id"].(int)
+	login := info["log"].(string)
 
-	pHist, err := uh.uServ.PurchaseHistory(c, userId)
+	pHist, err := uh.uServ.PurchaseHistory(c, login)
 
 	if err != nil {
 		c.JSON(http.StatusOK, response)
