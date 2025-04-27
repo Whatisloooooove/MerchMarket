@@ -25,8 +25,8 @@ CREATE TABLE IF NOT EXISTS merchshop.transactions (
     amount INTEGER NOT NULL CHECK (amount > 0),
     transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (sender_id) REFERENCES users(user_id),
-    FOREIGN KEY (receiver_id) REFERENCES users(user_id)
+    FOREIGN KEY (sender_id) REFERENCES merchshop.users(user_id),
+    FOREIGN KEY (receiver_id) REFERENCES merchshop.users(user_id)
 );
 
 -- Таблица покупок товаров
@@ -37,8 +37,8 @@ CREATE TABLE IF NOT EXISTS merchshop.purchases (
     count INTEGER NOT NULL CHECK (count > 0),
     purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (merch_id) REFERENCES merch(merch_id)
+    FOREIGN KEY (user_id) REFERENCES merchshop.users(user_id),
+    FOREIGN KEY (merch_id) REFERENCES merchshop.merch(merch_id)
 );
 
 -- Таблица истории изменения баланса монет
@@ -49,5 +49,5 @@ CREATE TABLE IF NOT EXISTS merchshop.coinhistory (
     coins_after INTEGER NOT NULL CHECK (coins_after >= 0),
     change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    FOREIGN KEY (user_id) REFERENCES merchshop.users(user_id)
 );
