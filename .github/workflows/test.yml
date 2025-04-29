@@ -2,7 +2,7 @@ name: Run Service Tests
 
 on:
   push:
-    branches: [main, feature/*]
+    branches: [develop, feature/*]
   pull_request:
     branches: [main]
 
@@ -28,5 +28,5 @@ jobs:
     
     - name: Run service tests
       run: |
-        cd merch_service/test/mock/service_test
+        cd merch_service/test/service_test
         go test -v -race ./...
