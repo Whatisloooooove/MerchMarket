@@ -16,6 +16,7 @@ jobs:
       run: |
         pwd
         ls -la
+        cd ../../..
         tree -L 3
   
     - name: Checkout code
