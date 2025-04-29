@@ -20,15 +20,19 @@ var _ MerchServiceInterface = (*MerchService)(nil)
 
 // MerchService - реализует интерфейс MerchServiceInterface
 type MerchService struct {
-	MerchStorage entities.MerchStorage
-	UserStorage  entities.UserStorage
+	MerchStorage    entities.MerchStorage
+	UserStorage     entities.UserStorage
+	PurchaseStorage entities.PurchaseStorage
+	CoinsStorage    entities.CoinsStorage
 }
 
 // NewMerchService - создает объект MerchService
-func NewMerchService(m entities.MerchStorage, u entities.UserStorage) *MerchService {
+func NewMerchService(m entities.MerchStorage, u entities.UserStorage, p entities.PurchaseStorage, c entities.CoinsStorage) *MerchService {
 	return &MerchService{
-		MerchStorage: m,
-		UserStorage:  u,
+		MerchStorage:    m,
+		UserStorage:     u,
+		PurchaseStorage: p,
+		CoinsStorage:    c,
 	}
 }
 
@@ -54,14 +58,22 @@ func (m *MerchService) Buy(ctx context.Context, userName, merchName string, coun
 		return -1, models.ErrNotEnoughCoins
 	}
 
+	oldBalance := user.Coins
+	oldStock := merch.Stock
+
 	user.Coins -= merch.Price * count
 	merch.Stock -= count
 
 	err = m.MerchStorage.Update(ctx, merch)
 	if err != nil {
-		user.Coins += merch.Price * count
-		merch.Stock += count
 		return -1, err
+	}
+
+	if oldBalance != user.Coins {
+		err = m.CoinsStorage.Create(ctx, user, oldBalance)
+		if err != nil {
+			return -1, err
+		}
 	}
 
 	err = m.UserStorage.Update(ctx, user)
@@ -69,6 +81,13 @@ func (m *MerchService) Buy(ctx context.Context, userName, merchName string, coun
 		user.Coins += merch.Price * count
 		merch.Stock += count
 		return -1, err
+	}
+
+	if oldStock != merch.Stock {
+		err = m.PurchaseStorage.Create(ctx, user, merch, count)
+		if err != nil {
+			return -1, err
+		}
 	}
 
 	return user.Coins, nil

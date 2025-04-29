@@ -1,0 +1,9 @@
+stages:
+  - test
+
+service_tests:
+  stage: service_test
+  image: golang:1.21
+  script:
+    - cd merch_service/test/mock/service_test
+    - go test -v -race ./...

@@ -32,10 +32,4 @@ type UserStorage interface {
 	// Get возвращает пользователя по ID. Если пользователь не найден,
 	// возвращает nil и ошибку.
 	GetByLogin(ctx context.Context, login string) (*models.User, error)
-
-	// GetCoinsHistory - возвращает историю кошелька пользователя
-	GetCoinsHistory(ctx context.Context, userLogin string) ([]models.CoinsEntry, error)
-
-	// GetPurchaseHistory - возвращает историю покупок
-	GetPurchaseHistory(ctx context.Context, userLogin string) ([]models.PurchaseEntry, error)
 }

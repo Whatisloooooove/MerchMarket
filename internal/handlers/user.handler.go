@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"log"
 	"merch_service/configs"
 	"merch_service/internal/models"
 	"merch_service/internal/service"
@@ -87,6 +88,7 @@ func (uh *UserHandler) RegHandler() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, response)
 			return
 		case err != nil:
+			log.Printf("regHandler error: %v", err)
 			c.JSON(http.StatusInternalServerError, response)
 			return
 		}
@@ -94,6 +96,7 @@ func (uh *UserHandler) RegHandler() gin.HandlerFunc {
 		// err == nil <=> Пользователь успешно зарегистрирован
 		response.ErrorCode = http.StatusOK
 		response.Message = RegistrationOK
+		log.Println("Пользователь успешно зарегистрирован")
 		c.JSON(http.StatusOK, response)
 	}
 }

@@ -12,6 +12,8 @@ var (
 	_ entities.MerchStorage       = (*MockMerchStorage)(nil)
 	_ entities.UserStorage        = (*MockUserStorage)(nil)
 	_ entities.TransactionStorage = (*MockTransactionStorage)(nil)
+	_ entities.CoinsStorage       = (*MockCoinsStorage)(nil)
+	_ entities.PurchaseStorage    = (*MockPurchaseStorage)(nil)
 )
 
 // MockUserStorage реализация
@@ -19,16 +21,12 @@ type MockUserStorage struct {
 	mu     sync.RWMutex
 	users  map[int]*models.User
 	byName map[string]*models.User
-	coins  map[int][]models.CoinsEntry
-	purch  map[int][]models.PurchaseEntry
 }
 
 func NewMockUserStorage() *MockUserStorage {
 	return &MockUserStorage{
 		users:  make(map[int]*models.User),
 		byName: make(map[string]*models.User),
-		coins:  make(map[int][]models.CoinsEntry),
-		purch:  make(map[int][]models.PurchaseEntry),
 	}
 }
 
@@ -43,12 +41,6 @@ func (s *MockUserStorage) Create(ctx context.Context, user *models.User) error {
 	user.Id = len(s.users) + 1
 	s.users[user.Id] = user
 	s.byName[user.Login] = user
-	s.coins[user.Id] = []models.CoinsEntry{{
-		Id:          1,
-		Date:        time.Now(),
-		CoinsBefore: 0,
-		CoinsAfter:  1000,
-	}}
 	return nil
 }
 
@@ -98,38 +90,6 @@ func (s *MockUserStorage) Delete(ctx context.Context, id int) error {
 	return nil
 }
 
-func (s *MockUserStorage) GetCoinsHistory(ctx context.Context, userLogin string) ([]models.CoinsEntry, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	user, exists := s.byName[userLogin]
-	if !exists {
-		return nil, models.ErrUserNotFound
-	}
-
-	history, exists := s.coins[user.Id]
-	if !exists {
-		return nil, models.ErrUserNotFound
-	}
-	return history, nil
-}
-
-func (s *MockUserStorage) GetPurchaseHistory(ctx context.Context, userLogin string) ([]models.PurchaseEntry, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	user, exists := s.byName[userLogin]
-	if !exists {
-		return nil, models.ErrUserNotFound
-	}
-
-	history, exists := s.purch[user.Id]
-	if !exists {
-		return nil, models.ErrUserNotFound
-	}
-	return history, nil
-}
-
 // MockMerchStorage реализация
 type MockMerchStorage struct {
 	mu    sync.RWMutex
@@ -139,7 +99,7 @@ type MockMerchStorage struct {
 func NewMockMerchStorage() *MockMerchStorage {
 	return &MockMerchStorage{
 		items: map[int]*models.Item{
-			1: {Id: 1, Name: "Футболка", Price: 50, Stock: 10},
+			1: {Id: 1, Name: "Футболка", Price: 100, Stock: 12},
 			2: {Id: 2, Name: "Кружка", Price: 30, Stock: 5},
 		},
 	}
@@ -228,13 +188,6 @@ func (s *MockTransactionStorage) Create(ctx context.Context, sender, recv *model
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if sender.Coins < amount {
-		return models.ErrInsufficientCoins
-	}
-
-	sender.Coins -= amount
-	recv.Coins += amount
-
 	s.transactions = append(s.transactions, models.TransactionEntry{
 		Id:         len(s.transactions) + 1,
 		SenderID:   sender.Id,
@@ -242,4 +195,62 @@ func (s *MockTransactionStorage) Create(ctx context.Context, sender, recv *model
 		Amount:     amount,
 	})
 	return nil
+}
+
+// MockPurchaseStorage реализация
+type MockPurchaseStorage struct {
+	mu    sync.RWMutex
+	purch map[string][]*models.PurchaseEntry
+}
+
+func NewMockPurchaseStorage() *MockPurchaseStorage {
+	return &MockPurchaseStorage{
+		purch: make(map[string][]*models.PurchaseEntry),
+	}
+}
+
+func (p *MockPurchaseStorage) Create(ctx context.Context, currUser *models.User, merch *models.Item, count int) error {
+	p.mu.Lock()
+	p.purch[currUser.Login] = append(p.purch[currUser.Login], &models.PurchaseEntry{ItemName: merch.Name, Count: count, Date: time.Now()})
+	p.mu.Unlock()
+	return nil
+}
+
+func (p *MockPurchaseStorage) Get(ctx context.Context, userName string) ([]*models.PurchaseEntry, error) {
+	p.mu.Lock()
+	purchHist, exists := p.purch[userName]
+	p.mu.Unlock()
+	if !exists {
+		return nil, models.ErrUserNotFound
+	}
+	return purchHist, nil
+}
+
+// MockCoinsStorage реализация
+type MockCoinsStorage struct {
+	mu    sync.RWMutex
+	coins map[string][]*models.CoinsEntry
+}
+
+func NewMockCoinsStorage() *MockCoinsStorage {
+	return &MockCoinsStorage{
+		coins: make(map[string][]*models.CoinsEntry),
+	}
+}
+
+func (c *MockCoinsStorage) Create(ctx context.Context, currUser *models.User, oldBalance int) error {
+	c.mu.Lock()
+	c.coins[currUser.Login] = append(c.coins[currUser.Login], &models.CoinsEntry{CoinsBefore: oldBalance, CoinsAfter: currUser.Coins, Id: currUser.Id, Date: time.Now()})
+	c.mu.Unlock()
+	return nil
+}
+
+func (c *MockCoinsStorage) Get(ctx context.Context, userName string) ([]*models.CoinsEntry, error) {
+	c.mu.Lock()
+	coinsHist, exists := c.coins[userName]
+	c.mu.Unlock()
+	if !exists {
+		return nil, models.ErrUserNotFound
+	}
+	return coinsHist, nil
 }

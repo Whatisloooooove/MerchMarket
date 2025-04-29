@@ -16,23 +16,27 @@ type UserServiceInterface interface {
 	Register(ctx context.Context, regReq *models.LoginRequest) error
 
 	// CoinsHistory - возвращает историю изменения баланса пользователя
-	CoinsHistory(ctx context.Context, userLogin string) ([]models.CoinsEntry, error)
+	CoinsHistory(ctx context.Context, userLogin string) ([]*models.CoinsEntry, error)
 
 	// PurchaseHistory - возвращает историю покупок
-	PurchaseHistory(ctx context.Context, userLogin string) ([]models.PurchaseEntry, error)
+	PurchaseHistory(ctx context.Context, userLogin string) ([]*models.PurchaseEntry, error)
 }
 
 var _ UserServiceInterface = (*UserService)(nil)
 
 // UserService - реализует интерфейс UserServiceInterface
 type UserService struct {
-	UserStorage entities.UserStorage
+	UserStorage     entities.UserStorage
+	PurchaseStorage entities.PurchaseStorage
+	CoinsStorage    entities.CoinsStorage
 }
 
 // NewUserService - создает объект UserService
-func NewUserService(u entities.UserStorage) *UserService {
+func NewUserService(u entities.UserStorage, p entities.PurchaseStorage, c entities.CoinsStorage) *UserService {
 	return &UserService{
-		UserStorage: u,
+		UserStorage:     u,
+		PurchaseStorage: p,
+		CoinsStorage:    c,
 	}
 }
 
@@ -63,18 +67,19 @@ func (u *UserService) Register(ctx context.Context, regReq *models.LoginRequest)
 	if err != nil {
 		return err
 	}
+	
 	return nil
 }
 
 // CoinsHistory - проверяет существует ли переданный пользователь
 // и возвращает слайс с историей изменения баланса
-func (u *UserService) CoinsHistory(ctx context.Context, userLogin string) ([]models.CoinsEntry, error) {
+func (u *UserService) CoinsHistory(ctx context.Context, userLogin string) ([]*models.CoinsEntry, error) {
 	_, err := u.UserStorage.GetByLogin(ctx, userLogin)
 	if err != nil {
 		return nil, err
 	}
 
-	coinsHistory, err := u.UserStorage.GetCoinsHistory(ctx, userLogin)
+	coinsHistory, err := u.CoinsStorage.Get(ctx, userLogin)
 	if err != nil {
 		return nil, err
 	}
@@ -83,13 +88,13 @@ func (u *UserService) CoinsHistory(ctx context.Context, userLogin string) ([]mod
 
 // PurchaseHistory - проверяет существует ли переданный пользователь
 // и возвращает слайс с историей покупок мерча
-func (u *UserService) PurchaseHistory(ctx context.Context, userLogin string) ([]models.PurchaseEntry, error) {
+func (u *UserService) PurchaseHistory(ctx context.Context, userLogin string) ([]*models.PurchaseEntry, error) {
 	_, err := u.UserStorage.GetByLogin(ctx, userLogin)
 	if err != nil {
 		return nil, err
 	}
 
-	purchaseHistory, err := u.UserStorage.GetPurchaseHistory(ctx, userLogin)
+	purchaseHistory, err := u.PurchaseStorage.Get(ctx, userLogin)
 	if err != nil {
 		return nil, err
 	}

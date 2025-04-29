@@ -17,13 +17,15 @@ var _ TransactionServiceInterface = (*TransactionService)(nil)
 type TransactionService struct {
 	TransactionStorage entities.TransactionStorage
 	UserStorage        entities.UserStorage
+	CoinsStorage       entities.CoinsStorage
 }
 
 // NewTransactionService - создает объект TransactionService
-func NewTransactionService(t entities.TransactionStorage, u entities.UserStorage) *TransactionService {
+func NewTransactionService(t entities.TransactionStorage, u entities.UserStorage, c entities.CoinsStorage) *TransactionService {
 	return &TransactionService{
 		TransactionStorage: t,
 		UserStorage:        u,
+		CoinsStorage:       c,
 	}
 }
 
@@ -31,12 +33,20 @@ func NewTransactionService(t entities.TransactionStorage, u entities.UserStorage
 // хватает ли денег отправителю для совершения операции,
 // и совершает операцию отправки
 func (t *TransactionService) Send(ctx context.Context, sender, recv string, amount int) error {
+	if amount <= 0 {
+		return models.ErrInvalidAmount
+	}
+
+	if sender == recv {
+		return models.ErrSameSenderReceiver
+	}
+
 	sendUser, err := t.UserStorage.GetByLogin(ctx, sender)
 	if err != nil {
 		return err
 	}
 
-	recvUser, err := t.UserStorage.GetByLogin(ctx, sender)
+	recvUser, err := t.UserStorage.GetByLogin(ctx, recv)
 	if err != nil {
 		return err
 	}
@@ -45,7 +55,30 @@ func (t *TransactionService) Send(ctx context.Context, sender, recv string, amou
 		return models.ErrNotEnoughCoins
 	}
 
+	sendUser.Coins -= amount
+	recvUser.Coins += amount
+
 	err = t.TransactionStorage.Create(ctx, sendUser, recvUser, amount)
+	if err != nil {
+		return err
+	}
+
+	err = t.UserStorage.Update(ctx, sendUser)
+	if err != nil {
+		return err
+	}
+
+	err = t.UserStorage.Update(ctx, recvUser)
+	if err != nil {
+		return err
+	}
+
+	err = t.CoinsStorage.Create(ctx, sendUser, sendUser.Coins+amount)
+	if err != nil {
+		return err
+	}
+
+	err = t.CoinsStorage.Create(ctx, recvUser, recvUser.Coins-amount)
 	if err != nil {
 		return err
 	}
