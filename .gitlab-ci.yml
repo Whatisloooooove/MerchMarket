@@ -5,5 +5,5 @@ service_tests:
   stage: service_test
   image: golang:1.21
   script:
-    - cd merch_service/test/service_test
+    - cd test/service_test
     - go test -v -race ./...

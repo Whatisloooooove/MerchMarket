@@ -28,5 +28,5 @@ jobs:
     
     - name: Run service tests
       run: |
-        cd merch_service/test/service_test
+        cd test/service_test
         go test -v -race ./...
