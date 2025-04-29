@@ -12,12 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Debug directory structure
-      run: |
-        pwd
-        ls -la
-        cd ../../..
-        tree -L 3
   
     - name: Checkout code
       uses: actions/checkout@v3
