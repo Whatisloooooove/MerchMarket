@@ -375,7 +375,7 @@ func TestTransactionService_Send_TableDriven(t *testing.T) {
 				sender, err := userStorage.GetByLogin(ctx, tc.senderLogin)
 				require.NoError(t, err)
 
-				senderHistory, err := coinsStorage.Get(ctx, tc.senderLogin)
+				senderHistory, err := coinsStorage.Get(ctx, sender)
 				require.NoError(t, err)
 				require.Len(t, senderHistory, 1)
 				assert.Equal(t, sender.Coins+tc.amount, senderHistory[0].CoinsBefore)
@@ -384,7 +384,7 @@ func TestTransactionService_Send_TableDriven(t *testing.T) {
 				receiver, err := userStorage.GetByLogin(ctx, tc.receiverLogin)
 				require.NoError(t, err)
 
-				receiverHistory, err := coinsStorage.Get(ctx, tc.receiverLogin)
+				receiverHistory, err := coinsStorage.Get(ctx, receiver)
 				require.NoError(t, err)
 				require.Len(t, receiverHistory, 1)
 				assert.Equal(t, receiver.Coins-tc.amount, receiverHistory[0].CoinsBefore)

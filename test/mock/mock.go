@@ -216,9 +216,9 @@ func (p *MockPurchaseStorage) Create(ctx context.Context, currUser *models.User,
 	return nil
 }
 
-func (p *MockPurchaseStorage) Get(ctx context.Context, userName string) ([]*models.PurchaseEntry, error) {
+func (p *MockPurchaseStorage) Get(ctx context.Context, user *models.User) ([]*models.PurchaseEntry, error) {
 	p.mu.Lock()
-	purchHist, exists := p.purch[userName]
+	purchHist, exists := p.purch[user.Login]
 	p.mu.Unlock()
 	if !exists {
 		return nil, models.ErrUserNotFound
@@ -245,9 +245,9 @@ func (c *MockCoinsStorage) Create(ctx context.Context, currUser *models.User, ol
 	return nil
 }
 
-func (c *MockCoinsStorage) Get(ctx context.Context, userName string) ([]*models.CoinsEntry, error) {
+func (c *MockCoinsStorage) Get(ctx context.Context, user *models.User) ([]*models.CoinsEntry, error) {
 	c.mu.Lock()
-	coinsHist, exists := c.coins[userName]
+	coinsHist, exists := c.coins[user.Login]
 	c.mu.Unlock()
 	if !exists {
 		return nil, models.ErrUserNotFound
