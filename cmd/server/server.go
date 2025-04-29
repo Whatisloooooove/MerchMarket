@@ -15,11 +15,13 @@ func main() {
 	userStorage := postgres.NewUserStorage(db)
 	merchStorage := postgres.NewMerchStorage(db)
 	transactionStorage := postgres.NewTransactionStorage(db)
+	coinsStorage := postgres.NewCoinsStorage(db)
+	purchaseStorage := postgres.NewPurchaseStorage(db)
 
 	// Инициализация сервисов
-	userService := service.NewUserService(userStorage)
-	merchService := service.NewMerchService(merchStorage, userStorage)
-	transactionService := service.NewTransactionService(transactionStorage, userStorage)
+	userService := service.NewUserService(userStorage, purchaseStorage, coinsStorage)
+	merchService := service.NewMerchService(merchStorage, userStorage, purchaseStorage, coinsStorage)
+	transactionService := service.NewTransactionService(transactionStorage, userStorage, coinsStorage)
 
 	// Инициализация хендлеров
 	userHandler := handlers.NewUserHandler(userService)

@@ -10,5 +10,5 @@ type PurchaseStorage interface {
 	Create(ctx context.Context, currUser *models.User, merch *models.Item, count int) error
 
 	// Get - получает слайс покупок пользователя
-	Get(ctx context.Context, userName string) ([]*models.PurchaseEntry, error)
+	Get(ctx context.Context, user *models.User) ([]*models.PurchaseEntry, error)
 }

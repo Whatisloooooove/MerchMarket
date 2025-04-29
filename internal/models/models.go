@@ -49,11 +49,11 @@ type LoginRequest struct {
 }
 
 type PurchaseRequest struct {
-	Item  string `json:"id"`
+	Item  string `json:"name"`
 	Count int    `json:"count"`
 }
 
 type TransactionRequest struct {
-	Reciever string `json:"reciever_id"`
+	Reciever string `json:"reciever"`
 	Amount   int    `json:"amount"`
 }

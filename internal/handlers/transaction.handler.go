@@ -45,6 +45,7 @@ func (th *TransactionHandler) TransferHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, response)
 		return
 	case err != nil:
+		response.Message = err.Error()
 		c.JSON(http.StatusInternalServerError, response)
 		return
 	}

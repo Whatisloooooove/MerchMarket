@@ -64,6 +64,7 @@ func (mh *MerchHandler) BuyMerchHandler(c *gin.Context) {
 		c.JSON(http.StatusOK, response)
 		return
 	case err != nil:
+		response.Message = err.Error()
 		c.JSON(http.StatusInternalServerError, response)
 		return
 	}

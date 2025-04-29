@@ -10,5 +10,5 @@ type CoinsStorage interface {
 	Create(ctx context.Context, currUser *models.User, oldBalance int) error
 
 	// Get - получает слайс изменений баланса пользователя
-	Get(ctx context.Context, userName string) ([]*models.CoinsEntry, error)
+	Get(ctx context.Context, user *models.User) ([]*models.CoinsEntry, error)
 }
