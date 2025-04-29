@@ -16,8 +16,7 @@ jobs:
       run: |
         pwd
         ls -la
-        ls -la test/ || true
-        ls -la merch_service/test/ || true
+        tree -L 3
   
     - name: Checkout code
       uses: actions/checkout@v3
