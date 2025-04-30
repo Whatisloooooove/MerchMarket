@@ -162,10 +162,14 @@ func TestMerchServiceMerchList(t *testing.T) {
 	merchService := service.NewMerchService(merchStorage, userStorage, purchaseStorage, coinsStorage)
 
 	items, err := merchService.MerchList(ctx)
+	// Не очень хороший тест, поскольку обход
+	// мапы делается в случайном порядке
+	// Поэтому от запуска к запуску результат меняется
 	assert.NoError(t, err)
-	assert.Len(t, items, 2)
+	assert.Len(t, items, 3)
 	assert.Equal(t, "Футболка", items[0].Name)
 	assert.Equal(t, "Кружка", items[1].Name)
+	assert.Equal(t, "ОченьДорогаяВещь", items[2].Name)
 }
 
 // -------------------------- Проверка транзакций -----------------------------

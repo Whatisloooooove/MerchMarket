@@ -52,7 +52,7 @@ func (serv *MerchServer) loadConfig(configPath string) {
 	serv.config = &sc
 }
 
-func NewMerchServer(u *handlers.UserHandler, t *handlers.TransactionHandler, m *handlers.MerchHandler) *MerchServer {
+func NewMerchServer(u *handlers.UserHandler, t *handlers.TransactionHandler, m *handlers.MerchHandler, configPath string) *MerchServer {
 	router := gin.Default()
 
 	newServ := MerchServer{
@@ -64,7 +64,12 @@ func NewMerchServer(u *handlers.UserHandler, t *handlers.TransactionHandler, m *
 		mHandler: m,
 	}
 
-	newServ.loadConfig("configs/server_config.yml")
+	// Хардоженые пути, сорян =(
+	if configPath == "" {
+		configPath = "configs/server_config.yml"
+	}
+
+	newServ.loadConfig(configPath)
 
 	return &newServ
 }

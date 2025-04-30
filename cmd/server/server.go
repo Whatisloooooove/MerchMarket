@@ -29,6 +29,6 @@ func main() {
 	transactionHandler := handlers.NewTransactionHandler(transactionService)
 
 	// Эти серивисы передаются в Server
-	serv := server.NewMerchServer(userHandler, transactionHandler, merchHandler)
+	serv := server.NewMerchServer(userHandler, transactionHandler, merchHandler, "")
 	serv.Start()
 }
