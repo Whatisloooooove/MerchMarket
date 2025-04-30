@@ -22,7 +22,7 @@ type TestUserPG struct {
 }
 
 func (u *TestUserPG) SetupSuite() {
-	connString := fmt.Sprint("user=postgres host=localhost port=5432 dbname=postgres sslmode=disable")
+	connString := "user=postgres host=localhost port=5432 dbname=postgres sslmode=disable"
 
 	config, err := pgxpool.ParseConfig(connString)
 	if err != nil {
@@ -36,12 +36,32 @@ func (u *TestUserPG) SetupSuite() {
 	}
 
 	_, err = adminPool.Exec(context.Background(),
-		"CREATE USER test_user WITH PASSWORD 'test_password'")
+		`
+		DO
+		$do$
+		BEGIN
+		IF EXISTS (
+			SELECT FROM pg_user
+			WHERE  usename = 'test_user') THEN
+
+			RAISE NOTICE 'Role "my_user" already exists. Skipping.';
+		ELSE
+			CREATE USER test_user LOGIN PASSWORD 'test_password';
+		END IF;
+		END
+		$do$;
+		`)
 	require.NoError(u.T(), err)
 
-	_, err = adminPool.Exec(context.Background(),
-		"CREATE DATABASE test_db OWNER test_user")
+	testDBexists := false
+	err = adminPool.QueryRow(context.Background(),
+		`SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'test_db');`).Scan(&testDBexists)
 	require.NoError(u.T(), err)
+
+	if !testDBexists {
+		_, _ = adminPool.Exec(context.Background(),
+			`CREATE DATABASE test_db OWNER test_user`)
+	}
 
 	_, err = adminPool.Exec(context.Background(),
 		"GRANT ALL PRIVILEGES ON DATABASE test_db TO test_user")
@@ -73,10 +93,11 @@ func (u *TestUserPG) SetupSuite() {
 	require.NoError(u.T(), err)
 	u.pool = pool
 
-	err = storage.RunMigrations(dbconf)
+	err = storage.RunMigrations(dbconf, "../../migrations")
 	require.NoError(u.T(), err)
 
 	u.usesStorage = postgres.NewUserStorage(pool)
+	u.ctx = context.Background()
 }
 
 func (s *TestUserPG) TearDownSuite() {
@@ -111,7 +132,9 @@ func (s *TestUserPG) SetupTest() {
 }
 
 func TestTestUserPG(t *testing.T) {
-	suite.Run(t, new(TestUserPG))
+	userPG := new(TestUserPG)
+	userPG.ctx = context.Background()
+	suite.Run(t, userPG)
 }
 
 // TestCreate - тестирует создание пользователя

@@ -82,7 +82,7 @@ func CreateDb(dbconf *DBConfig) error {
 	return nil
 }
 
-func RunMigrations(dbconf *DBConfig) error {
+func RunMigrations(dbconf *DBConfig, migrationsPath string) error {
 	dbURL := &url.URL{
 		Scheme:   "postgres",
 		User:     url.UserPassword(dbconf.User, dbconf.Pass),
@@ -91,7 +91,8 @@ func RunMigrations(dbconf *DBConfig) error {
 		RawQuery: "sslmode=disable",
 	}
 
-	migrationsAbsPath, err := filepath.Abs("migrations")
+	migrationsAbsPath, err := filepath.Abs(migrationsPath)
+	fmt.Println(migrationsAbsPath)
 	if err != nil {
 		log.Fatalln("не удалось определить абсолютный путь миграций:", err.Error())
 	}
@@ -138,7 +139,8 @@ func InitDB() *pgxpool.Pool {
 		log.Fatalln("не удалось подключиться к базе данных:", err)
 	}
 
-	if err := RunMigrations(dbconf); err != nil {
+	// Захардкодили "migrations" и счтиаем что запускаем сервер с корня проекта =)
+	if err := RunMigrations(dbconf, "migrations"); err != nil {
 		log.Fatalln("не удалось применить миграции:", err)
 	}
 
