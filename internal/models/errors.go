@@ -15,18 +15,21 @@ var (
 	ErrWrongPassword = errors.New("неверный пароль")
 	ErrUserExists    = errors.New("пользователь с таким логином уже существует")
 )
+
 //
 // StorageErrorsBlock
 //
 
 // Для UserStorage
 var (
-	ErrUserNotFound      = errors.New("такого пользователя нет в бд")
-	ErrEmptyUser         = errors.New("пользователь не может быть nill")
-	ErrInvalidUserID     = errors.New("id пользователя не может быть отрицательным")
-	ErrEmptyUserLogin    = errors.New("логин пользователя не может быть пустым")
-	ErrEmptyUserPassword = errors.New("пароль пользователя не может быть пустым")
-	ErrNegativeUserCoins = errors.New("количество монет пользователя не может быть отрицательным")
+	ErrUserNotFound        = errors.New("такого пользователя нет в бд")
+	ErrEmptyUser           = errors.New("пользователь не может быть nill")
+	ErrInvalidUserID       = errors.New("id пользователя не может быть отрицательным")
+	ErrEmptyUserLogin      = errors.New("логин пользователя не может быть пустым")
+	ErrEmptyUserPassword   = errors.New("пароль пользователя не может быть пустым")
+	ErrNegativeUserCoins   = errors.New("количество монет пользователя не может быть отрицательным")
+	ErrNoPurhasesUserFound = errors.New("в истории покупок нет такого пользователя")
+	ErrNoHistoryUserFound  = errors.New("в истории монет нет такого пользователя")
 )
 
 // Для MerchStorage
@@ -41,12 +44,13 @@ var (
 
 // Для TransactionStorage
 var (
-	ErrEmptyTransaction   = errors.New("транзакция не может быть nill")
-	ErrInvalidSenderID    = errors.New("id отправителя не может быть отрицательным")
-	ErrInvalidReceiverID  = errors.New("id получателя не может быть отрицательным")
-	ErrSenderNotFound     = errors.New("такого отправителя нет в бд")
-	ErrReceiverNotFound   = errors.New("такого получателя нет в бд")
-	ErrInvalidAmount      = errors.New("amount транзакции не может быть отрицательным")
-	ErrSameSenderReceiver = errors.New("получатель и отправитель одинаковые")
-	ErrInsufficientCoins  = errors.New("у отправителя не хватает монет для отправки")
+	ErrEmptyTransaction    = errors.New("транзакция не может быть nill")
+	ErrInvalidSenderID     = errors.New("id отправителя не может быть отрицательным")
+	ErrInvalidReceiverID   = errors.New("id получателя не может быть отрицательным")
+	ErrSenderNotFound      = errors.New("такого отправителя нет в бд")
+	ErrReceiverNotFound    = errors.New("такого получателя нет в бд")
+	ErrInvalidAmount       = errors.New("amount транзакции не может быть отрицательным")
+	ErrSameSenderReceiver  = errors.New("получатель и отправитель одинаковые")
+	ErrInsufficientCoins   = errors.New("у отправителя не хватает монет для отправки")
+	ErrNoTransactionsFound = errors.New("транзакция не найдена")
 )

@@ -6,9 +6,18 @@ import (
 )
 
 type PurchaseStorage interface {
-	// Create - добавляет покупкку мерча юзером в историю
+	// Базовые CRUD операции
+
+	// Create - добавляет покупку count экземляров мерча юзером. 
+	// Из экземляров User и Merch записывает id
+	// В случае неудачи возвращает ошибку
 	Create(ctx context.Context, currUser *models.User, merch *models.Item, count int) error
 
-	// Get - получает слайс покупок пользователя
+	// Get - возвращает слайс покупок пользователя. 
+	// В случае неудачи возвращает ошибку
 	Get(ctx context.Context, user *models.User) ([]*models.PurchaseEntry, error)
+
+	// Delete удаляет записb о покупке пользоватпеля.
+    // В случае неудачи возвращает ошибку
+    Delete(ctx context.Context, user *models.User) error
 }
