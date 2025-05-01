@@ -32,45 +32,37 @@ func (s *TestMerchPG) SetupSuite() {
 	pgContainer, err := ps.RunContainer(ctx,
 		testcontainers.WithImage("postgres:15-alpine"),
 		ps.WithDatabase("test_db"),
-		ps.WithUsername("test_user"),
-		ps.WithPassword("test_password"),
+		ps.WithUsername("postgres"),
+		ps.WithPassword("postgres"),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).
-				WithStartupTimeout(60*time.Second)),
+				WithOccurrence(1).
+				WithStartupTimeout(10*time.Second)),
 	)
 	require.NoError(s.T(), err)
 	s.container = pgContainer
 
-	connStr, err := pgContainer.ConnectionString(ctx,
-		"sslmode=disable",
-		"application_name=test",
-		"user=test_user",
-		"password=test_password",
-		"dbname=test_db",
-	)
-	require.NoError(s.T(), err)
+	connStr := "postgres://postgres:postgres@localhost:5432/test_db?sslmode=disable"
 
-	poolConfig, err := pgxpool.ParseConfig(connStr)
-	require.NoError(s.T(), err)
-
-	poolConfig.ConnConfig.TLSConfig = nil
-
-	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
+	pool, err := pgxpool.New(ctx, connStr)
 	require.NoError(s.T(), err)
 	s.pool = pool
 
+	time.Sleep(2 * time.Second)
+
+	_, err = pool.Exec(ctx, "SELECT 1")
+	require.NoError(s.T(), err)
+
 	dbconf := &storage.DBConfig{
-		User:   "test_user",
-		Pass:   "test_password",
+		User:   "postgres",
+		Pass:   "postgres",
 		Addr:   "localhost",
 		Port:   5432,
 		DBName: "test_db",
 	}
 
-	require.Eventually(s.T(), func() bool {
-		return storage.RunMigrations(dbconf, "../../migrations") == nil
-	}, 30*time.Second, 1*time.Second, "Migrations failed")
+	err = storage.RunMigrations(dbconf, "../../migrations")
+	require.NoError(s.T(), err)
 
 	s.merchStorage = postgres.NewMerchStorage(pool)
 }

@@ -104,27 +104,20 @@ data - данные в формате задаваемом API
 
 ## **🧪 Тестирование**  
 
-- **Unit-тесты**:  
+- **Api-тесты**:  
   ```bash
-  go test ./... -cover
+  go test  -v -count=1 ./test/api_test/...
   ```  
-- **Интеграционные тесты**:  
+- **service-тесты**:  
   ```bash
-  docker-compose -f docker-compose.test.yml up
+  go test  -v -count=1 ./test/service_test/...
+  ```  
+- **storage-тесты**:  
+  ```bash
+  go test  -v -count=1 ./test/storage_test/...
   ```  
 
-Покрытие кода: **TO-DO** (проверено `go cover`).  
-
----
-
-## **📊 Нагрузочное тестирование**  
-
-Результаты теста (если проводилось):  
-- **RPS**: TO-DO запросов/сек  
-- **Latency**: TO-DO  
-- **Успешность**: TO-DO  
-
-Графики и отчёт приложены в ... TO-DO  
+Покрытие кода: **TO-DO** (проверено `go cover`).   
 
 ## **🤝 Состав команды**
 | Участник | Github | Роль| 
@@ -132,7 +125,4 @@ data - данные в формате задаваемом API
 | Морочковский Владислав 🛌 | [Whatisloooooove](https://github.com/Whatisloooooove) | Team Lead and QA Engineer |
 | Шалбай Алишер 🥷 | [reshile](https://github.com/reshile)     | API Developer |
 | Накорнеева Юлия 🌞 | [nakorneeva](https://github.com/Yulia-Nakorneeva) | Database Engineer |
-| Афиф Азиз 🧑‍💻 | [AzizAF1](https://github.com/AzizAF1) | Backend Core Developer | 
-
-⚠️ TO-DO
----
+| Афиф Азиз 🧑‍💻 | [AzizAF1](https://github.com/AzizAF1) | Backend Core Developer |
