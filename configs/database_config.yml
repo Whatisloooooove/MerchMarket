@@ -1,0 +1,4 @@
+pass:     postgres
+addr:     db        # ← service name in docker‐compose
+port:     5432
+name:     merchshop
