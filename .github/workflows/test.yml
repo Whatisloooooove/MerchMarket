@@ -11,6 +11,9 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-latest
     services:
+      docker:
+        image: docker:dind
+        options: --privileged
       postgres:
         image: postgres:latest
         env:
