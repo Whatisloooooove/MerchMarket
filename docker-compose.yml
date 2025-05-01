@@ -1,0 +1,36 @@
+services:
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile.db
+    ports:
+      - "5433:5432" # Changed host port to 5433 to avoid conflict
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: merchshop
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d merchshop"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy # Wait for db to be healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432 # Corrected port for the server to connect to
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: merchshop
+
+volumes:
+  db_data:
