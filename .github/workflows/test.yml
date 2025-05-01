@@ -49,6 +49,11 @@ jobs:
         run: |
           cd test/api_test
           go test -v -race ./...
+
+      - name: Run Service tests
+        run: |
+          cd test/service_test
+          go test -v -race ./...
       
       - name: Run Storage tests
         run: |

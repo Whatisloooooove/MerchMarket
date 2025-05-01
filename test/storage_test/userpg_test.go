@@ -23,7 +23,7 @@ type TestUserPG struct {
 
 func (s *TestUserPG) SetupSuite() {
 	connString := fmt.Sprintf("user=%s password=%s host=%s port=%d dbname=%s sslmode=disable",
-		"postgres", "", "localhost", 5432, "postgres")
+		"postgres", "postgres", "localhost", 5432, "postgres")
 
 	config, err := pgxpool.ParseConfig(connString)
 	if err != nil {
