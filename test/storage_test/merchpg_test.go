@@ -2,19 +2,16 @@ package storagetest
 
 import (
 	"context"
+	"fmt"
 	"merch_service/internal/models"
 	"merch_service/internal/storage"
 	"merch_service/internal/storage/postgres"
 	"testing"
-	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"github.com/testcontainers/testcontainers-go"
-	ps "github.com/testcontainers/testcontainers-go/modules/postgres"
-	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 type TestMerchPG struct {
@@ -22,62 +19,124 @@ type TestMerchPG struct {
 	pool         *pgxpool.Pool
 	merchStorage *postgres.MerchPG
 	ctx          context.Context
-	container    testcontainers.Container
 }
 
 func (s *TestMerchPG) SetupSuite() {
-	ctx := context.Background()
-	s.ctx = ctx
+	connString := fmt.Sprintf("user=%s password=%s host=%s port=%d dbname=%s sslmode=disable",
+		"postgres", "", "localhost", 5432, "postgres")
 
-	pgContainer, err := ps.RunContainer(ctx,
-		testcontainers.WithImage("postgres:15-alpine"),
-		ps.WithDatabase("test_db"),
-		ps.WithUsername("postgres"),
-		ps.WithPassword("postgres"),
-		testcontainers.WithWaitStrategy(
-			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(1).
-				WithStartupTimeout(10*time.Second)),
-	)
+	config, err := pgxpool.ParseConfig(connString)
+	if err != nil {
+		require.NoError(s.T(), err)
+	}
+
+	config.ConnConfig.TLSConfig = nil
+	adminPool, err := pgxpool.NewWithConfig(context.Background(), config)
+	if err != nil {
+		require.NoError(s.T(), err)
+	}
+
+	_, err = adminPool.Exec(context.Background(),
+		`
+		DO
+		$do$
+		BEGIN
+		IF EXISTS (
+			SELECT FROM pg_user
+			WHERE  usename = 'test_user') THEN
+
+			RAISE NOTICE 'Role "my_user" already exists. Skipping.';
+		ELSE
+			CREATE USER test_user;
+		END IF;
+		END
+		$do$;
+		`)
 	require.NoError(s.T(), err)
-	s.container = pgContainer
 
-	connStr := "postgres://postgres:postgres@localhost:5432/test_db?sslmode=disable"
-
-	pool, err := pgxpool.New(ctx, connStr)
+	testDBexists := false
+	err = adminPool.QueryRow(context.Background(),
+		`SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'test_db');`).Scan(&testDBexists)
 	require.NoError(s.T(), err)
-	s.pool = pool
 
-	time.Sleep(2 * time.Second)
+	if !testDBexists {
+		_, _ = adminPool.Exec(context.Background(),
+			`CREATE DATABASE test_db OWNER test_user`)
+	}
 
-	_, err = pool.Exec(ctx, "SELECT 1")
+	_, err = adminPool.Exec(context.Background(),
+		"GRANT ALL PRIVILEGES ON DATABASE test_db TO test_user")
 	require.NoError(s.T(), err)
+
+	adminPool.Close()
 
 	dbconf := &storage.DBConfig{
-		User:   "postgres",
-		Pass:   "postgres",
+		User:   "test_user",
+		Pass:   "",
 		Addr:   "localhost",
 		Port:   5432,
 		DBName: "test_db",
 	}
 
+	err = storage.CreateDb(dbconf)
+	require.NoError(s.T(), err)
+
+	connString = fmt.Sprintf(
+		"user=%s password=%s host=%s port=%d dbname=%s sslmode=disable",
+		dbconf.User,
+		dbconf.Pass,
+		dbconf.Addr,
+		dbconf.Port,
+		dbconf.DBName,
+	)
+
+	config, err = pgxpool.ParseConfig(connString)
+	require.NoError(s.T(), err)
+	config.ConnConfig.TLSConfig = nil
+
+	pool, err := pgxpool.NewWithConfig(context.Background(), config)
+	require.NoError(s.T(), err)
+
 	err = storage.RunMigrations(dbconf, "../../migrations")
 	require.NoError(s.T(), err)
 
 	s.merchStorage = postgres.NewMerchStorage(pool)
+	s.pool = pool
+	s.ctx = context.Background()
 }
 
 func (s *TestMerchPG) TearDownSuite() {
 	if s.pool != nil {
 		s.pool.Close()
 	}
-	if s.container != nil {
-		s.container.Terminate(context.Background())
+
+	adminPool, err := pgxpool.New(context.Background(),
+		"user=postgres password= host=localhost port=5432 dbname=postgres sslmode=disable")
+	if err != nil {
+		s.T().Logf("Failed to connect as admin: %v", err)
+		return
+	}
+	defer adminPool.Close()
+
+	// Завершаем подключения к test_db
+	_, err = adminPool.Exec(context.Background(), `
+		SELECT pg_terminate_backend(pid)
+		FROM pg_stat_activity
+		WHERE datname = 'test_db' AND pid <> pg_backend_pid();
+	`)
+	if err != nil {
+		s.T().Logf("Failed to terminate connections: %v", err)
+	}
+
+	// Удаляем базу и пользователя
+	_, err = adminPool.Exec(context.Background(), "DROP DATABASE IF EXISTS test_db")
+	if err != nil {
+		s.T().Logf("Failed to drop test database: %v", err)
 	}
 }
 
 func (s *TestMerchPG) SetupTest() {
-	_, err := s.pool.Exec(s.ctx, "TRUNCATE TABLE merchshop.transactions, merchshop.users, merchshop.coinhistory, merchshop.purchases CASCADE")
+	_, err := s.pool.Exec(s.ctx, "TRUNCATE TABLE merchshop.users, merchshop.coinhistory, merchshop.purchases CASCADE")
 	require.NoError(s.T(), err)
 }
 

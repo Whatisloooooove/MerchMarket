@@ -20,11 +20,11 @@ api_tests:
     - cd test/api_test
     - go test -v -race ./...
 
-storage_tests:
+service_tests:
   stage: test
   image: golang:1.21
   script:
-    - cd test/storage_test
+    - cd test/service_test
     - go test -v -race ./...
 
 after_script:
