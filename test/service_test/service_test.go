@@ -162,6 +162,9 @@ func TestMerchServiceMerchList(t *testing.T) {
 	merchService := service.NewMerchService(merchStorage, userStorage, purchaseStorage, coinsStorage)
 
 	items, err := merchService.MerchList(ctx)
+	// Не очень хороший тест, поскольку обход
+	// мапы делается в случайном порядке
+	// Поэтому от запуска к запуску результат меняется
 	assert.NoError(t, err)
 	assert.Len(t, items, 2)
 	itemNames := make([]string, 0, len(items))

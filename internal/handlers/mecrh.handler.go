@@ -63,6 +63,11 @@ func (mh *MerchHandler) BuyMerchHandler(c *gin.Context) {
 		response.Message = NotEnoughMerchError
 		c.JSON(http.StatusOK, response)
 		return
+	case errors.Is(err, models.ErrNotEnoughCoins):
+		response.ErrorCode = http.StatusBadRequest
+		response.Message = NotEnoughCoinsError
+		c.JSON(http.StatusBadRequest, response)
+		return
 	case err != nil:
 		response.Message = err.Error()
 		c.JSON(http.StatusInternalServerError, response)
@@ -71,6 +76,9 @@ func (mh *MerchHandler) BuyMerchHandler(c *gin.Context) {
 
 	response.ErrorCode = http.StatusOK
 	response.Message = PurchaseOK
-	response.Data = coins
+	response.Data = gin.H{
+		balance: coins,
+	}
+
 	c.JSON(http.StatusOK, response)
 }
