@@ -45,8 +45,8 @@ func loadConfig(configPath string) *DBConfig {
 
 func CreateDb(dbconf *DBConfig) error {
 	connString := fmt.Sprintf("user=%s password=%s host=%s port=%d dbname=postgres sslmode=disable",
-		dbconf.User,
-		dbconf.Pass,
+		"postgres",
+		"",
 		dbconf.Addr,
 		dbconf.Port)
 
@@ -92,7 +92,6 @@ func RunMigrations(dbconf *DBConfig, migrationsPath string) error {
 	}
 
 	migrationsAbsPath, err := filepath.Abs(migrationsPath)
-	fmt.Println(migrationsAbsPath)
 	if err != nil {
 		log.Fatalln("не удалось определить абсолютный путь миграций:", err.Error())
 	}

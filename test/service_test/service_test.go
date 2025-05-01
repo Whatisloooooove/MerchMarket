@@ -162,10 +162,16 @@ func TestMerchServiceMerchList(t *testing.T) {
 	merchService := service.NewMerchService(merchStorage, userStorage, purchaseStorage, coinsStorage)
 
 	items, err := merchService.MerchList(ctx)
+	// Не очень хороший тест, поскольку обход
+	// мапы делается в случайном порядке
+	// Поэтому от запуска к запуску результат меняется
 	assert.NoError(t, err)
-	assert.Len(t, items, 2)
-	assert.Equal(t, "Футболка", items[0].Name)
-	assert.Equal(t, "Кружка", items[1].Name)
+	assert.Len(t, items, 3)
+	itemNames := make([]string, 0, len(items))
+	for _, item := range items {
+		itemNames = append(itemNames, item.Name)
+	}
+	assert.ElementsMatch(t, []string{"Кружка", "Футболка", "ОченьДорогаяВещь"}, itemNames)
 }
 
 // -------------------------- Проверка транзакций -----------------------------
@@ -258,7 +264,13 @@ func TestMerchServiceBuy(t *testing.T) {
 	}
 }
 
-func TestTransactionService_Send_TableDriven(t *testing.T) {
+// TestTransactionServiceSend - проверяет метод Send в TransactionService на следующщие сценарии:
+// - успешный перевод
+// - отправителя нет в базе данных
+// - недостаточно средств у отправителя
+// - перевод самому себе
+// - перевод отрицательной суммы
+func TestTransactionServiceSend(t *testing.T) {
 	ctx := context.Background()
 
 	testCases := []struct {
@@ -338,21 +350,17 @@ func TestTransactionService_Send_TableDriven(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Инициализация моков
 			userStorage := mock.NewMockUserStorage()
 			transactionStorage := mock.NewMockTransactionStorage()
 			coinsStorage := mock.NewMockCoinsStorage()
 			service := service.NewTransactionService(transactionStorage, userStorage, coinsStorage)
 
-			// Подготовка данных (ВЫЗОВ prepare ДОБАВЛЕН)
 			if tc.prepare != nil {
 				tc.prepare(userStorage)
 			}
 
-			// Выполнение операции
 			err := service.Send(ctx, tc.senderLogin, tc.receiverLogin, tc.amount)
 
-			// Проверка ошибки
 			if tc.wantErr != nil {
 				require.ErrorIs(t, err, tc.wantErr)
 			} else {

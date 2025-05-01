@@ -123,6 +123,11 @@ func (uh *UserHandler) LoginHandler(config *configs.ServerConfig) gin.HandlerFun
 			response.ErrorCode = http.StatusBadRequest
 			response.Message = WrongPassError
 			return
+		case errors.Is(err, models.ErrUserNotFound):
+			response.ErrorCode = http.StatusBadRequest
+			response.Message = UserNotFoundError
+			c.JSON(http.StatusBadRequest, response)
+			return
 		case err != nil:
 			c.JSON(http.StatusInternalServerError, response)
 			return

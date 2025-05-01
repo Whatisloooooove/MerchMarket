@@ -38,6 +38,10 @@ func (s *MockUserStorage) Create(ctx context.Context, user *models.User) error {
 		return models.ErrUserExists
 	}
 
+	// Пришлось добавить, для api тестов, чтобы не пересоздавать новые моки
+	if user.Coins == 0 {
+		user.Coins = 1000
+	}
 	user.Id = len(s.users) + 1
 	s.users[user.Id] = user
 	s.byName[user.Login] = user
@@ -101,6 +105,7 @@ func NewMockMerchStorage() *MockMerchStorage {
 		items: map[int]*models.Item{
 			1: {Id: 1, Name: "Футболка", Price: 100, Stock: 12},
 			2: {Id: 2, Name: "Кружка", Price: 30, Stock: 5},
+			3: {Id: 3, Name: "ОченьДорогаяВещь", Price: 100500, Stock: 5},
 		},
 	}
 }
