@@ -6,6 +6,7 @@ import (
 	"merch_service/internal/models"
 	"merch_service/internal/storage"
 	"merch_service/internal/storage/postgres"
+	"os"
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -22,8 +23,24 @@ type TestTransactionPG struct {
 }
 
 func (s *TestTransactionPG) SetupSuite() {
-	connString := fmt.Sprintf("user=%s password=%s host=%s port=%d dbname=%s sslmode=disable",
-		"postgres", "postgres", "localhost", 5432, "postgres")
+	host := os.Getenv("POSTGRES_HOST")
+	if host == "" {
+		host = "localhost" // для CI
+	}
+
+	portStr := os.Getenv("POSTGRES_PORT")
+	if portStr == "" {
+		portStr = "5432" // для CI
+	}
+
+	connString := fmt.Sprintf(
+		"user=%s password=%s host=%s port=%s dbname=%s sslmode=disable",
+		"postgres", // или os.Getenv("POSTGRES_USER")
+		"",         // или os.Getenv("POSTGRES_PASSWORD")
+		host,
+		portStr,
+		"postgres",
+	)
 
 	config, err := pgxpool.ParseConfig(connString)
 	if err != nil {
