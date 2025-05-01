@@ -1,9 +1,31 @@
 stages:
   - test
 
-service_tests:
-  stage: service_test
+services:
+  - docker:dind
+
+variables:
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_DB: merchshop
+
+before_script:
+  - docker-compose up -d
+  - while ! docker-compose exec db pg_isready -U postgres -d merchshop; do sleep 1; done
+
+api_tests:
+  stage: test
   image: golang:1.21
   script:
-    - cd test/service_test
+    - cd test/api_test
     - go test -v -race ./...
+
+storage_tests:
+  stage: test
+  image: golang:1.21
+  script:
+    - cd test/storage_test
+    - go test -v -race ./...
+
+after_script:
+  - docker-compose down
