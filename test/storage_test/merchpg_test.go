@@ -33,7 +33,7 @@ func (s *TestMerchPG) SetupSuite() {
 		testcontainers.WithImage("postgres:latest"),
 		ps.WithDatabase("test_db"),
 		ps.WithUsername("test_user"),
-		ps.WithPassword(""),
+		ps.WithPassword("test_pass"),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).
@@ -51,7 +51,7 @@ func (s *TestMerchPG) SetupSuite() {
 
 	dbconf := &storage.DBConfig{
 		User:   "test_user",
-		Pass:   "",
+		Pass:   "test_pass",
 		Addr:   "localhost",
 		Port:   5432,
 		DBName: "test_db",
