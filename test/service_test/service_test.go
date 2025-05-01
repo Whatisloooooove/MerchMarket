@@ -166,12 +166,12 @@ func TestMerchServiceMerchList(t *testing.T) {
 	// мапы делается в случайном порядке
 	// Поэтому от запуска к запуску результат меняется
 	assert.NoError(t, err)
-	assert.Len(t, items, 2)
+	assert.Len(t, items, 3)
 	itemNames := make([]string, 0, len(items))
 	for _, item := range items {
 		itemNames = append(itemNames, item.Name)
 	}
-	assert.ElementsMatch(t, []string{"Кружка", "Футболка"}, itemNames)
+	assert.ElementsMatch(t, []string{"Кружка", "Футболка", "ОченьДорогаяВещь"}, itemNames)
 }
 
 // -------------------------- Проверка транзакций -----------------------------
