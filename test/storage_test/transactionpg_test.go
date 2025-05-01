@@ -28,13 +28,13 @@ type TestTransactionPG struct {
 
 func (s *TestTransactionPG) SetupSuite() {
 	ctx := context.Background()
+	s.ctx = ctx
 
-	// Запускаем контейнер с PostgreSQL
 	pgContainer, err := ps.RunContainer(ctx,
 		testcontainers.WithImage("postgres:15-alpine"),
 		ps.WithDatabase("test_db"),
 		ps.WithUsername("test_user"),
-		ps.WithPassword("test_pass"),
+		ps.WithPassword("test_password"),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).
@@ -43,26 +43,37 @@ func (s *TestTransactionPG) SetupSuite() {
 	require.NoError(s.T(), err)
 	s.container = pgContainer
 
-	connStr, err := pgContainer.ConnectionString(ctx)
+	connStr, err := pgContainer.ConnectionString(ctx,
+		"sslmode=disable",
+		"application_name=test",
+		"user=test_user",
+		"password=test_password",
+		"dbname=test_db",
+	)
 	require.NoError(s.T(), err)
 
-	pool, err := pgxpool.New(ctx, connStr)
+	poolConfig, err := pgxpool.ParseConfig(connStr)
+	require.NoError(s.T(), err)
+
+	poolConfig.ConnConfig.TLSConfig = nil
+
+	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	require.NoError(s.T(), err)
 	s.pool = pool
 
 	dbconf := &storage.DBConfig{
 		User:   "test_user",
-		Pass:   "test_pass",
+		Pass:   "test_password",
 		Addr:   "localhost",
 		Port:   5432,
 		DBName: "test_db",
 	}
 
-	err = storage.RunMigrations(dbconf, "../../migrations")
-	require.NoError(s.T(), err)
+	require.Eventually(s.T(), func() bool {
+		return storage.RunMigrations(dbconf, "../../migrations") == nil
+	}, 30*time.Second, 1*time.Second, "Migrations failed")
 
 	s.transactionStorage = postgres.NewTransactionStorage(pool)
-	s.ctx = ctx
 }
 
 func (s *TestTransactionPG) TearDownSuite() {
